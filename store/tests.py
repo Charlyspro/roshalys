@@ -570,12 +570,14 @@ class OrderAdminActionsTests(TestCase):
         )
         self.order1 = Order.objects.create(
             customer_name="Cliente Uno",
+            customer_phone="54927950001",
             status="pending",
             delivery_option="pickup",
             total=Decimal("100.00"),
         )
         self.order2 = Order.objects.create(
             customer_name="Cliente Dos",
+            customer_phone="54927950002",
             status="pending",
             delivery_option="pickup",
             total=Decimal("100.00"),
@@ -614,4 +616,17 @@ class OrderAdminActionsTests(TestCase):
         })
         self.assertIn(response.status_code, (200, 302))
         self.assertEqual(Order.objects.get(pk=self.order1.pk).status, "delivered")
+
+    def test_action_shows_whatsapp_links_for_customers(self):
+        self.client.force_login(self.admin_user)
+        url = reverse("admin:store_order_changelist")
+        response = self.client.post(url, {
+            "action": "marcar_confirmado",
+            "_selected_action": [str(self.order1.pk)],
+        })
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn("wa.me/54927950001", content)
+        self.assertIn("confirmado", content)
+        self.assertEqual(Order.objects.get(pk=self.order1.pk).status, "confirmed")
 

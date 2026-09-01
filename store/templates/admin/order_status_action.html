@@ -1,0 +1,30 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls %}
+{% block title %}Avisar por WhatsApp | {{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<p>El estado de los pedidos fue actualizado. Ahora avisá al cliente por WhatsApp usando TU número (el del negocio):</p>
+<ul>
+  {% for item in links %}
+  <li style="margin-bottom: 16px;">
+    <strong>Pedido #{{ item.order.pk }}</strong> — {{ item.order.customer_name }}
+    {% if item.customer_phone %}
+      (tel: {{ item.customer_phone }})
+    {% else %}
+      <em>sin teléfono</em>
+    {% endif %}
+    <br>
+    <a class="button" target="_blank" rel="noreferrer"
+       href="{{ item.wa_link }}">Abrir WhatsApp con {{ item.order.customer_name }}</a>
+    {% if not item.wa_link %}
+      <br><em class="errornote">No se pudo generar el enlace (falta teléfono del cliente).</em>
+    {% endif %}
+  </li>
+  {% empty %}
+  <li>No hay pedidos seleccionados.</li>
+  {% endfor %}
+</ul>
+<p>
+  <a href="{% url 'admin:store_order_changelist' %}">&larr; Volver a pedidos</a>
+</p>
+{% endblock %}

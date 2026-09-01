@@ -1,10 +1,14 @@
 from django.contrib import admin
+from django.http import HttpResponse
+from django.template.response import TemplateResponse
 
 from store.forms import ProductAdminForm, ProductImageAdminForm
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
 from store.models import Category, DeliveryZone, Order, OrderItem, Product, ProductDeliveryConfig, ProductImage
+from store.config import SITE_NAME
+from store.whatsapp import wa_link_for
 
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
@@ -104,30 +108,44 @@ class OrderAdmin(admin.ModelAdmin):
 
     @admin.action(description="Marcar como Confirmado")
     def marcar_confirmado(self, request, queryset):
-        updated = queryset.exclude(status="confirmed").update(status="confirmed")
-        self.message_user(request, f"{updated} pedido(s) marcado(s) como Confirmado.")
+        return self._apply_status_action(request, queryset, "confirmed", "Confirmado")
 
     @admin.action(description="Marcar como En preparación")
     def marcar_preparando(self, request, queryset):
-        updated = queryset.exclude(status="preparing").update(status="preparing")
-        self.message_user(request, f"{updated} pedido(s) marcado(s) como En preparación.")
+        return self._apply_status_action(request, queryset, "preparing", "En preparación")
 
     @admin.action(description="Marcar como Listo")
     def marcar_listo(self, request, queryset):
-        updated = queryset.exclude(status="ready").update(status="ready")
-        self.message_user(request, f"{updated} pedido(s) marcado(s) como Listo.")
+        return self._apply_status_action(request, queryset, "ready", "Listo")
 
     @admin.action(description="Marcar como Enviado")
     def marcar_enviado(self, request, queryset):
-        updated = queryset.exclude(status="shipped").update(status="shipped")
-        self.message_user(request, f"{updated} pedido(s) marcado(s) como Enviado.")
+        return self._apply_status_action(request, queryset, "shipped", "Enviado")
 
     @admin.action(description="Marcar como Entregado")
     def marcar_entregado(self, request, queryset):
-        updated = queryset.exclude(status="delivered").update(status="delivered")
-        self.message_user(request, f"{updated} pedido(s) marcado(s) como Entregado.")
+        return self._apply_status_action(request, queryset, "delivered", "Entregado")
 
     @admin.action(description="Marcar como Cancelado")
     def marcar_cancelado(self, request, queryset):
-        updated = queryset.exclude(status="cancelled").update(status="cancelled")
-        self.message_user(request, f"{updated} pedido(s) marcado(s) como Cancelado.")
+        return self._apply_status_action(request, queryset, "cancelled", "Cancelado")
+
+    def _apply_status_action(self, request, queryset, status_key, label):
+        changed = queryset.exclude(status=status_key).update(status=status_key)
+        self.message_user(request, f"{changed} pedido(s) marcado(s) como {label}.")
+
+        orders = list(queryset.order_by("id"))
+        links = []
+        for order in orders:
+            links.append({
+                "order": order,
+                "customer_phone": order.customer_phone,
+                "wa_link": wa_link_for(order, status_key, SITE_NAME),
+            })
+        return TemplateResponse(request, "admin/order_status_action.html", {
+            "title": f"Avisar por WhatsApp: {label}",
+            "status_label": label,
+            "status_key": status_key,
+            "links": links,
+            "opts": self.model._meta,
+        })
