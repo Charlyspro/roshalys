@@ -61,7 +61,7 @@ WSGI_APPLICATION = "roshalys.wsgi.app"
 
 DATABASE_ENGINE = config("DATABASE_ENGINE", default="sqlite3")
 DB_NAME = config("DATABASE_NAME", default=config("DB_NAME", default=""))
-DB_USER = config("DATABASE_USER", default=config("DB_USER", default=""))
+DB_USER = config("DATABASE_USER", default=config("DB_USER", default=config("DB_USERNAME", default="")))
 DB_PASSWORD = config("DATABASE_PASSWORD", default=config("DB_PASSWORD", default=""))
 DB_HOST = config("DATABASE_HOST", default=config("DB_HOST", default="localhost"))
 if DATABASE_ENGINE == "postgresql":
@@ -72,6 +72,9 @@ if DATABASE_ENGINE == "postgresql":
         "PASSWORD": DB_PASSWORD,
         "HOST": DB_HOST,
         "PORT": config("DATABASE_PORT", default=config("DB_PORT", default="5432")),
+        "OPTIONS": {
+            "sslmode": "require",
+        },
     }}
 elif DATABASE_ENGINE == "mysql":
     DATABASES = {"default": {
@@ -134,6 +137,11 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
 
+# Asegurar que el directorio de logs exista (necesario en build/producción
+# donde el filesystem comienza vacío) antes de configurar los handlers.
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 # Configuración de Logging
 LOGGING = {
     "version": 1,
@@ -157,14 +165,14 @@ LOGGING = {
         },
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "logs/tienda.log",
+            "filename": str(LOG_DIR / "tienda.log"),
             "maxBytes": 1024 * 1024 * 10,  # 10 MB
             "backupCount": 5,
             "formatter": "verbose",
         },
         "audit_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "logs/audit.log",
+            "filename": str(LOG_DIR / "audit.log"),
             "maxBytes": 1024 * 1024 * 10,  # 10 MB
             "backupCount": 10,
             "formatter": "verbose",

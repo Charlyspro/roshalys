@@ -28,6 +28,10 @@ staticfiles/
 logs/
 *.log
 
+# Archivos temporales de deploy wasmer
+deploy_*.txt
+deploy_*.log
+
 # Imagenes de trabajo del cliente (fuente, no usadas en runtime)
 IMAGENES/
 

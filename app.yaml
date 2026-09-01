@@ -1,0 +1,55 @@
+kind: wasmer.io/App.v0
+name: roshalys
+app_id: da_nQgIotrUxGMe
+owner: charlyspro771
+package: .
+locality:
+  regions:
+  - fr-roub1
+env:
+  DEBUG: 'False'
+  DATABASE_ENGINE: mysql
+  ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0,.wasmer.app
+  CSRF_TRUSTED_ORIGINS: https://roshalys-charlyspro771.wasmer.app
+  STORE_NAME: ROSHALYS
+  STORE_LOGO: ROSHALYS
+  STORE_CURRENCY: USD
+  ADMIN_EMAIL: admin@roshalys.local
+  WHATSAPP_NUMBERS: 54279546,55502491
+  PRIMARY_COLOR: '#0f766e'
+  SECONDARY_COLOR: '#f59e0b'
+  BACKGROUND_COLOR: '#f8fafc'
+  TEXT_COLOR: '#1f2937'
+  BUTTON_COLOR: '#0f766e'
+capabilities:
+  database:
+    engine: mysql
+jobs:
+- name: after_deploy
+  trigger: post-deployment
+  action:
+    execute:
+      command: after_deploy
+annotations:
+  anybuild.run/config:
+    asgi_application: roshalys.asgi:application
+    commands:
+      start: uvicorn roshalys.wsgi:app --interface=wsgi --host 0.0.0.0 --port $PORT
+    name: out
+    python_cross_platform: wasix_wasm32
+    python_database: mysql
+    python_extra_dependencies:
+    - uvicorn
+    python_extra_index_url: https://python-registry.wasix.org/simple
+    python_framework: django
+    python_install_inputs:
+    - pyproject.toml
+    - README.md
+    python_migration_strategy: django
+    python_server: uvicorn
+    wsgi_application: roshalys.wsgi:app
+  anybuild.run/provider: python
+  anybuild.run/version: 0.28.2
+  wasmer.io/app-kind: django
+  wasmer.io/version: 7.3.0
+enableDatabase: true

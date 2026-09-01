@@ -8,6 +8,7 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "roshalys.settings")
+    import roshalys.cookie_patch  # noqa: F401  (corrige Set-Cookie con espacio inicial)
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
