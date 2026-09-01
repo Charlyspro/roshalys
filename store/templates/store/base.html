@@ -13,13 +13,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <title>{% block title %}ROSHALYS - Elegancia Moderna{% endblock %}</title>
     <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="{% static 'images/apple-touch-icon.png' %}" />
+    <link rel="manifest" href="{% static 'manifest.webmanifest' %}" />
+    <meta name="theme-color" content="#0f766e" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="ROSHALYS" />
     <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
   </head>
   <body>
     <header class="site-header">
       <div class="container nav-wrap">
         <button class="menu-button" type="button" aria-label="Abrir menú">☰</button>
-        <a class="brand" href="{% url 'store:home' %}">{{ store_logo|default:'ROSHALYS' }}</a>
+        <a class="brand" href="{% url 'store:home' %}">
+          <img class="brand-logo" src="{% static 'images/logo.svg' %}" alt="{{ store_logo|default:'ROSHALYS' }}" />
+          <span class="brand-text">{{ store_logo|default:'ROSHALYS' }}</span>
+        </a>
 
         <nav class="main-nav" aria-label="Categorías principales">
           <a href="{% url 'store:home' %}">Inicio</a>
