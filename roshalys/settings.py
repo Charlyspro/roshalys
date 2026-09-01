@@ -40,7 +40,7 @@ except ImportError:
     WHITENOISE_AVAILABLE = False
 
 if WHITENOISE_AVAILABLE and not DEBUG:
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 else:
     STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
