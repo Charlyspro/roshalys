@@ -2,7 +2,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.shortcuts import render
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 
 
 def robots_txt(request):
@@ -25,3 +26,6 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 else:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    if settings.MEDIA_URL.startswith("/"):
+        media_url_path = settings.MEDIA_URL.lstrip("/")
+        urlpatterns += [re_path(rf"^{media_url_path}(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT})]
