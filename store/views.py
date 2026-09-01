@@ -15,7 +15,7 @@ from django.urls import reverse
 
 from store import config
 from store.forms import CustomerProfileForm, CustomerRegistrationForm, DeliveryForm, ProductAdminForm
-from store.models import Category, DeliveryZone, Order, OrderItem, Product
+from store.models import Category, DeliveryZone, Order, OrderItem, Product, ProductDeliveryConfig
 
 # Loggers
 logger = logging.getLogger("store")
@@ -80,7 +80,10 @@ def _calculate_delivery_cost(request, delivery_option, delivery_zone=None):
     # Validar que todos los productos permitan domicilio
     for item in items:
         product = item["product"]
-        delivery_config = product.delivery_config
+        delivery_config = ProductDeliveryConfig.objects.filter(product=product).first()
+        
+        if delivery_config is None:
+            return None, f"El producto '{product.name}' no tiene configurada la entrega a domicilio"
         
         if not delivery_config.allow_delivery:
             return None, f"El producto '{product.name}' no permite envío a domicilio"
@@ -427,6 +430,8 @@ def admin_products(request):
         
         if form.is_valid():
             product = form.save()
+            # Asegurar que el producto tenga configuración de entrega
+            ProductDeliveryConfig.objects.get_or_create(product=product)
             # Logging de auditoría
             if product_id:
                 audit_logger.info(
@@ -462,6 +467,7 @@ def admin_edit_product(request, product_id):
         form = ProductAdminForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
+            ProductDeliveryConfig.objects.get_or_create(product=product)
             messages.success(request, f"Producto '{product.name}' actualizado exitosamente.")
             return redirect("store:admin_products")
     else:

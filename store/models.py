@@ -4,6 +4,8 @@ from pathlib import Path
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.text import slugify
 
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
@@ -215,3 +217,9 @@ class OrderItem(models.Model):
     @property
     def line_total(self):
         return self.price * self.quantity
+
+
+@receiver(post_save, sender=Product)
+def ensure_product_delivery_config(sender, instance, created, **kwargs):
+    if created:
+        ProductDeliveryConfig.objects.get_or_create(product=instance)
