@@ -1,4 +1,8 @@
+import mimetypes
 from pathlib import Path
+
+# Whitenoise/mimetypes: el navegador necesita este tipo para el manifest PWA.
+mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 from decouple import config
 
