@@ -1,0 +1,200 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Datos de entrega | ROSHALYS{% endblock %}
+
+{% block content %}
+<section class="container cart-page checkout-page">
+  <div style="margin-bottom: 24px;">
+    <h1 class="checkout-title">Datos de entrega</h1>
+    <p class="checkout-subtitle">Completa tu información para procesar tu pedido</p>
+  </div>
+
+  <div class="checkout-layout">
+    <!-- FORMULARIO PRINCIPAL -->
+    <div class="checkout-box">
+      <form method="post">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+          <div class="alert alert-error" style="margin-bottom: 16px;">
+            {% for error in form.non_field_errors %}
+              <p style="margin: 0;">{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- INFORMACIÓN PERSONAL -->
+        <h2 style="font-size: 1rem; margin: 0 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">Información personal</h2>
+        {% for field in form %}
+          {% if field.name != 'delivery_option' and field.name != 'delivery_address' and field.name != 'delivery_notes' and field.name != 'checkout_token' %}
+            <div class="form-group">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}<span style="color: #991B1B; font-size: 0.8rem; margin-top: 4px; display: block;">{{ field.errors.0 }}</span>{% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+        
+        {{ form.checkout_token }}
+
+        <!-- OPCIÓN DE ENTREGA -->
+        <h2 style="font-size: 1rem; margin: 24px 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">¿Cómo recibir tu pedido?</h2>
+        <div class="delivery-options">
+          {% for radio in form.delivery_option %}
+            <label class="delivery-option-card">
+              <div class="delivery-option-main">
+                {{ radio.tag }}
+                <div class="delivery-copy">
+                  {% if forloop.first %}
+                    <strong>Recoger en el local</strong>
+                  {% else %}
+                    <strong>Envío a domicilio</strong>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="delivery-desc">
+                {% if forloop.first %}
+                  Recoge tu pedido directamente en nuestro local.
+                {% else %}
+                  Te lo envíamos a tu dirección.
+                {% endif %}
+              </div>
+            </label>
+          {% endfor %}
+        </div>
+
+        <!-- CAMPOS DE ENTREGA (CONDICIONALES) -->
+        <div id="delivery-fields" style="display:none;">
+          <div class="form-group">
+            <label class="form-label" for="{{ form.delivery_zone.id_for_label }}">{{ form.delivery_zone.label }}</label>
+            {{ form.delivery_zone }}
+            {% if form.delivery_zone.errors %}<span style="color: #991B1B; font-size: 0.8rem; margin-top: 4px; display: block;">{{ form.delivery_zone.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="{{ form.delivery_address.id_for_label }}">{{ form.delivery_address.label }}</label>
+            {{ form.delivery_address }}
+            {% if form.delivery_address.errors %}<span style="color: #991B1B; font-size: 0.8rem; margin-top: 4px; display: block;">{{ form.delivery_address.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="{{ form.delivery_notes.id_for_label }}">{{ form.delivery_notes.label }}</label>
+            {{ form.delivery_notes }}
+          </div>
+        </div>
+
+        <!-- TOTAL -->
+        <div style="background: var(--surface-soft); padding: 16px; border-radius: var(--radius-lg); margin: 24px 0;">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <strong>${{ total }}</strong>
+          </div>
+          <div class="summary-row" id="delivery-cost-row" style="display: none; margin-top: 8px;">
+            <span>Costo de domicilio</span>
+            <strong id="delivery-cost-value">$0</strong>
+          </div>
+          <div class="summary-row total-row">
+            <span>Total de tu pedido</span>
+            <strong id="total-value" style="font-size: 1.2rem;">${{ total }}</strong>
+          </div>
+        </div>
+
+        <!-- BOTONES -->
+        <div style="display: flex; gap: 12px; flex-direction: column;">
+          <button type="submit" class="primary-btn full-width">Continuar al resumen</button>
+          <a class="secondary-btn full-width" href="{% url 'store:cart' %}" style="text-align: center;">← Volver al carrito</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- RESUMEN LATERAL -->
+    <div class="checkout-box">
+      <h2>Resumen del pedido</h2>
+      <div style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 12px;">
+        {% for line in items %}
+          <div class="summary-row" style="font-size: 0.9rem; margin-bottom: 8px;">
+            <span>{{ line.product.name }}</span>
+            <span>x{{ line.quantity }}</span>
+          </div>
+          <div class="summary-row" style="margin-bottom: 12px;">
+            <span></span>
+            <strong style="color: var(--primary);">${{ line.line_total }}</strong>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <strong>${{ total }}</strong>
+      </div>
+      <div class="summary-row" id="sidebar-delivery-cost" style="display: none;">
+        <span>Costo de domicilio</span>
+        <strong id="sidebar-delivery-value">$0</strong>
+      </div>
+      <div class="summary-row total-row">
+        <span>Total</span>
+        <strong id="sidebar-total">${{ total }}</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var radios = document.querySelectorAll('input[name="delivery_option"]');
+  var zoneSelect = document.getElementById('id_delivery_zone');
+  var deliveryFields = document.getElementById('delivery-fields');
+  var deliveryCostRow = document.getElementById('delivery-cost-row');
+  var deliveryCostValue = document.getElementById('delivery-cost-value');
+  var totalValue = document.getElementById('total-value');
+  var sidebarDeliveryCost = document.getElementById('sidebar-delivery-cost');
+  var sidebarDeliveryValue = document.getElementById('sidebar-delivery-value');
+  var sidebarTotal = document.getElementById('sidebar-total');
+  var subtotal = parseFloat("{{ total }}");
+  
+  // Zonas con sus costos (desde el servidor)
+  var zones = {
+    {% for zone in delivery_zones %}
+      "{{ zone.id }}": parseFloat("{{ zone.cost }}"){% if not forloop.last %},{% endif %}
+    {% endfor %}
+  };
+  
+  function updateTotal() {
+    var selected = document.querySelector('input[name="delivery_option"]:checked');
+    var deliveryCost = 0;
+    
+    if (selected && selected.value === 'delivery' && zoneSelect && zoneSelect.value) {
+      deliveryCost = zones[zoneSelect.value] || 0;
+      deliveryCostRow.style.display = 'block';
+      sidebarDeliveryCost.style.display = 'flex';
+      deliveryCostValue.textContent = '$' + deliveryCost.toFixed(2);
+      sidebarDeliveryValue.textContent = '$' + deliveryCost.toFixed(2);
+    } else {
+      deliveryCostRow.style.display = 'none';
+      sidebarDeliveryCost.style.display = 'none';
+    }
+    
+    var total = subtotal + deliveryCost;
+    totalValue.textContent = '$' + total.toFixed(2);
+    sidebarTotal.textContent = '$' + total.toFixed(2);
+  }
+  
+  function toggleFields() {
+    var selected = document.querySelector('input[name="delivery_option"]:checked');
+    if (selected && selected.value === 'delivery') {
+      deliveryFields.style.display = 'block';
+    } else {
+      deliveryFields.style.display = 'none';
+    }
+    updateTotal();
+  }
+  
+  radios.forEach(function(radio) { 
+    radio.addEventListener('change', toggleFields); 
+  });
+  
+  if (zoneSelect) {
+    zoneSelect.addEventListener('change', updateTotal);
+  }
+  
+  toggleFields();
+});
+</script>
+{% endblock %}

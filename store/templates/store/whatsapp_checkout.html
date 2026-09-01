@@ -1,0 +1,37 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Pedido por WhatsApp | ROSHALYS{% endblock %}
+
+{% block content %}
+<section class="container whatsapp-checkout">
+  <div style="margin-bottom: 32px; text-align: center;">
+    <h1 class="checkout-title">¡Pedido registrado!</h1>
+    <p class="checkout-subtitle">Número de pedido: <strong>#{{ order.pk }}</strong></p>
+    <p style="color: var(--text-2); margin-top: 8px;">Envía el mensaje por WhatsApp para confirmar</p>
+  </div>
+
+  <div class="checkout-layout">
+    <!-- MENSAJE -->
+    <div class="checkout-box">
+      <h2>Tu pedido</h2>
+      <div style="background: var(--surface-soft); padding: 16px; border-radius: var(--radius-lg); margin-bottom: 16px;">
+        <textarea readonly style="background: white; border: 1px solid var(--border); padding: 12px; border-radius: var(--radius); font-size: 0.9rem; line-height: 1.6; height: 200px; resize: vertical;">{{ message }}</textarea>
+      </div>
+      <p style="color: var(--text-2); font-size: 0.85rem; margin: 0;">Este es el mensaje que se enviará a nuestro equipo.</p>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="checkout-box">
+      <h2>Contactar por WhatsApp</h2>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for number in numbers %}
+          <a class="whatsapp-btn full-width" href="https://wa.me/{{ number }}?text={{ message|urlencode }}" target="_blank" rel="noreferrer">
+            💬 Enviar a {{ number }}
+          </a>
+        {% endfor %}
+        <a class="secondary-btn full-width" href="{% url 'store:home' %}" style="text-align: center;">Volver al inicio</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

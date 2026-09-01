@@ -1,0 +1,11 @@
+{% if page_obj.has_other_pages %}
+<nav class="pagination">
+  {% if page_obj.has_previous %}
+    <a class="secondary-btn" href="?page={{ page_obj.previous_page_number }}{% for k, v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">← Anterior</a>
+  {% endif %}
+  <span class="page-info">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a class="secondary-btn" href="?page={{ page_obj.next_page_number }}{% for k, v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">Siguiente →</a>
+  {% endif %}
+</nav>
+{% endif %}

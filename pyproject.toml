@@ -1,0 +1,15 @@
+[project]
+name = "tienda-roshalys"
+version = "0.1.0"
+description = "Tienda online ROSHALYS - Django desplegado en Wasmer Edge"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "Django>=5.2,<5.3",
+    "pillow>=11.0",
+    "python-decouple>=3.8",
+    "gunicorn>=23.0",
+    "whitenoise>=6.9",
+    "mysqlclient>=2.2.7",
+    "psycopg[binary]>=3.2",
+]

@@ -1,0 +1,32 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | ROSHALYS Admin{% endblock %}
+{% block bodyclass %}admin-modern{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+<div class="admin-topbar">
+  <div class="admin-brand-block">
+    <a href="{% url 'admin:index' %}" class="admin-brand-link">
+      <span class="admin-brand-mark">RO</span>
+      <span class="admin-brand-text">ROSHALYS</span>
+    </a>
+  </div>
+  <div class="admin-toolbar">
+    <a href="/" class="admin-link admin-link-primary">Ver tienda</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'admin:logout' %}" class="admin-link admin-link-muted">Cerrar sesión</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

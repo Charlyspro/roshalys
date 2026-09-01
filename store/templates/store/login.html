@@ -1,0 +1,38 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Iniciar sesión | ROSHALYS{% endblock %}
+
+{% block content %}
+<section class="container auth-page">
+  <div class="auth-card">
+    <h1>Iniciar sesión</h1>
+    <form method="post">
+      {% csrf_token %}
+      
+      {% if form.non_field_errors %}
+        <div class="alert alert-error" style="margin-bottom: 16px;">
+          {% for error in form.non_field_errors %}
+            <p style="margin: 0;">{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <div class="form-group">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <span style="color: #991B1B; font-size: 0.8rem; margin-top: 4px; display: block;">{{ field.errors.0 }}</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <button type="submit" class="primary-btn full-width" style="margin-top: 8px;">Iniciar sesión</button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+      <p class="auth-alt" style="margin: 0;">¿No tenés cuenta? <a href="{% url 'store:register' %}">Crear una ahora</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

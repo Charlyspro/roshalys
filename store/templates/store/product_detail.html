@@ -1,0 +1,91 @@
+{% extends 'store/base.html' %}
+
+{% block title %}{{ product.name }} | ROSHALYS{% endblock %}
+
+{% block content %}
+<section class="container product-detail">
+  <div class="detail-layout">
+    <!-- GALERÍA DE PRODUCTO -->
+    <div class="detail-gallery">
+      <div class="main-image" style="background: url('{{ product.get_main_image }}') center / cover;">
+        <img class="main-image" src="{{ product.get_main_image }}" alt="{{ product.name }}" style="display: none;" />
+      </div>
+      {% if gallery %}
+        <div class="thumbs">
+          {% for image in gallery %}
+            <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:product.name }}" loading="lazy" />
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- INFORMACIÓN DEL PRODUCTO -->
+    <div class="detail-info">
+      <span class="category-tag">{{ product.category.name }}</span>
+      
+      <h1>{{ product.name }}</h1>
+      
+      <p class="detail-price price">${{ product.price }}</p>
+
+      <!-- DISPONIBILIDAD -->
+      {% if product.available %}
+        <p style="color: #059669; font-weight: 600; font-size: 0.9rem; margin: 0;">
+          ✓ Disponible ({{ product.stock }} en stock)
+        </p>
+      {% else %}
+        <p style="color: #991B1B; font-weight: 600; font-size: 0.9rem; margin: 0;">
+          ✕ Agotado
+        </p>
+      {% endif %}
+
+      <!-- DESCRIPCIÓN -->
+      <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-2); margin: 16px 0;">
+        {{ product.description }}
+      </p>
+
+      <!-- FORMULARIO DE COMPRA -->
+      {% if product.available %}
+        <form class="purchase-form" method="post" action="{% url 'store:add_to_cart' product.id %}" style="margin: 24px 0; display: flex; gap: 12px; align-items: flex-end;">
+          {% csrf_token %}
+          <div style="flex: 0 0 80px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text);">Cantidad</label>
+            <input type="number" name="quantity" min="1" max="{{ product.stock }}" value="1" style="text-align: center;" />
+          </div>
+          <button type="submit" class="primary-btn" style="flex: 1; margin: 0;">Añadir al carrito</button>
+        </form>
+
+        <!-- WHATSAPP -->
+        <div class="detail-whatsapp">
+          <a class="whatsapp-btn full-width" href="https://wa.me/{{ whatsapp_numbers.0 }}?text={{ product.name|urlencode }}%20-%20${{ product.price }}" target="_blank" rel="noreferrer">
+            💬 Consultar por WhatsApp
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- PRODUCTOS RELACIONADOS -->
+  {% if related %}
+    <div class="related-products">
+      <div class="section-header">
+        <h2>Productos relacionados</h2>
+      </div>
+      <div class="product-grid">
+        {% for r in related %}
+          <article class="product-card">
+            <img src="{{ r.get_main_image }}" alt="{{ r.name }}" loading="lazy" />
+            <div class="card-body">
+              <span class="category-tag">{{ r.category.name }}</span>
+              <h3>{{ r.name }}</h3>
+              <p class="price">${{ r.price }}</p>
+              <div class="card-actions">
+                <a class="secondary-btn" href="{% url 'store:product_detail' r.slug %}">Ver producto</a>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

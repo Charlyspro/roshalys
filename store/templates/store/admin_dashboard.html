@@ -1,0 +1,45 @@
+{% extends 'store/admin_base.html' %}
+
+{% block title %}Dashboard | ROSHALYS{% endblock %}
+
+{% block content %}
+<section class="admin-dashboard">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span>Total de productos</span>
+      <strong>{{ products_count }}</strong>
+    </div>
+    <div class="stat-card">
+      <span>Productos activos</span>
+      <strong>{{ active_products }}</strong>
+    </div>
+    <div class="stat-card">
+      <span>Categorías</span>
+      <strong>{{ categories_count }}</strong>
+    </div>
+    <div class="stat-card">
+      <span>Destacados</span>
+      <strong>{{ featured_count }}</strong>
+    </div>
+    <div class="stat-card">
+      <span>Pedidos totales</span>
+      <strong>{{ orders_count }}</strong>
+    </div>
+    <div class="stat-card">
+      <span>Pedidos pendientes</span>
+      <strong>{{ pending_orders }}</strong>
+    </div>
+  </div>
+
+  <div class="admin-panel-box">
+    <h2>Productos recientes</h2>
+    <ul class="simple-list">
+      {% for product in recent_products %}
+        <li>{{ product.name }} - ${{ product.price }}</li>
+      {% empty %}
+        <li>No hay productos.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,296 @@
+{% extends 'store/admin_base.html' %}
+
+{% block title %}Productos | ROSHALYS{% endblock %}
+
+{% block content %}
+<style>
+  .form-section {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+  }
+  
+  .form-section h3 {
+    margin-top: 0;
+    color: #333;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #555;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+  }
+  
+  .form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  
+  .form-row.full {
+    grid-template-columns: 1fr;
+  }
+  
+  .checkbox-group {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  
+  .checkbox-group label {
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .checkbox-group input[type="checkbox"] {
+    width: auto;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .btn:hover {
+    background: #0056b3;
+  }
+  
+  .btn-danger {
+    background: #dc3545;
+  }
+  
+  .btn-danger:hover {
+    background: #c82333;
+  }
+  
+  .btn-small {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  
+  .error-list {
+    color: #dc3545;
+    font-size: 12px;
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+  }
+  
+  .error-list li {
+    margin: 3px 0;
+  }
+  
+  .table-wrap {
+    margin-top: 30px;
+  }
+  
+  .action-btns {
+    display: flex;
+    gap: 5px;
+  }
+  
+  .product-image-preview {
+    max-width: 50px;
+    max-height: 50px;
+  }
+</style>
+
+<div class="admin-panel-box">
+  <h2>Gestión de Productos</h2>
+  
+  <!-- Formulario de Crear/Editar Producto -->
+  <div class="form-section">
+    <h3>{% if form.instance.pk %}Editar Producto{% else %}Crear Nuevo Producto{% endif %}</h3>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div style="padding: 10px; margin-bottom: 15px; border-radius: 3px; {% if message.tags == 'success' %}background: #d4edda; color: #155724;{% else %}background: #f8d7da; color: #721c24;{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      {% if form.instance.pk %}
+        <input type="hidden" name="product_id" value="{{ form.instance.pk }}">
+      {% endif %}
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.name.id_for_label }}">Nombre *</label>
+          {{ form.name }}
+          {% if form.name.errors %}
+            <ul class="error-list">{% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.category.id_for_label }}">Categoría *</label>
+          {{ form.category }}
+          {% if form.category.errors %}
+            <ul class="error-list">{% for error in form.category.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.slug.id_for_label }}">Slug *</label>
+          {{ form.slug }}
+          {% if form.slug.errors %}
+            <ul class="error-list">{% for error in form.slug.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.price.id_for_label }}">Precio *</label>
+          {{ form.price }}
+          {% if form.price.errors %}
+            <ul class="error-list">{% for error in form.price.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.stock.id_for_label }}">Stock *</label>
+          {{ form.stock }}
+          {% if form.stock.errors %}
+            <ul class="error-list">{% for error in form.stock.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.image.id_for_label }}">Imagen Principal</label>
+          {{ form.image }}
+          {% if form.image.errors %}
+            <ul class="error-list">{% for error in form.image.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+          {% endif %}
+          {% if form.instance.pk and form.instance.image %}
+            <small style="display: block; margin-top: 8px;">
+              <img src="{{ form.instance.image.url }}" class="product-image-preview" alt="{{ form.instance.name }}">
+            </small>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="form-row full">
+        <div class="form-group">
+          <label for="{{ form.description.id_for_label }}">Descripción *</label>
+          {{ form.description }}
+          {% if form.description.errors %}
+            <ul class="error-list">{% for error in form.description.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="form-row full">
+        <div class="checkbox-group">
+          <label>
+            {{ form.is_active }}
+            Activo
+          </label>
+          <label>
+            {{ form.is_featured }}
+            Destacado
+          </label>
+        </div>
+      </div>
+      
+      <div class="form-row full">
+        <button type="submit" class="btn">
+          {% if form.instance.pk %}Actualizar Producto{% else %}Crear Producto{% endif %}
+        </button>
+        {% if form.instance.pk %}
+          <button type="button" class="btn btn-danger" onclick="location.href='{% url 'store:admin_products' %}'">
+            Cancelar
+          </button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+  
+  <!-- Tabla de Productos -->
+  <h3>Todos los productos ({{ products.count }})</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Imagen</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th>Activo</th>
+          <th>Destacado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+          <tr>
+            <td>
+              {% if product.image %}
+                <img src="{{ product.image.url }}" class="product-image-preview" alt="{{ product.name }}">
+              {% else %}
+                <span style="color: #999;">Sin imagen</span>
+              {% endif %}
+            </td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.category.name }}</td>
+            <td>${{ product.price }}</td>
+            <td>{{ product.stock }}</td>
+            <td>{{ product.is_active|yesno:"Sí,No" }}</td>
+            <td>{{ product.is_featured|yesno:"Sí,No" }}</td>
+            <td>
+              <div class="action-btns">
+                <a href="{% url 'store:admin_edit_product' product.id %}" class="btn btn-small" style="background: #28a745;">
+                  Editar
+                </a>
+                <a href="{% url 'store:admin_delete_product' product.id %}" class="btn btn-small btn-danger" onclick="return confirm('¿Estás seguro de que quieres eliminar este producto?');">
+                  Eliminar
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8">No hay productos.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

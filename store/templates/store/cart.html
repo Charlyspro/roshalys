@@ -1,0 +1,63 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Carrito | ROSHALYS{% endblock %}
+
+{% block content %}
+<section class="container cart-page">
+  <div style="margin-bottom: 24px;">
+    <h1 style="margin: 0 0 8px; font-size: 2rem;">Tu carrito</h1>
+    <p style="color: var(--text-2); margin: 0;">{{ items|length }} producto{% if items|length != 1 %}s{% endif %} en tu carrito</p>
+  </div>
+
+  {% if items %}
+    <div class="cart-layout">
+      <div class="cart-list">
+        {% for line in items %}
+          <div class="cart-item">
+            <img src="{{ line.product.get_main_image }}" alt="{{ line.product.name }}" />
+            <div class="cart-item-info">
+              <h3>{{ line.product.name }}</h3>
+              <p>${{ line.product.price }}</p>
+              <form method="post" action="{% url 'store:update_cart' line.product.id %}">
+                {% csrf_token %}
+                <input type="number" name="quantity" min="1" max="{{ line.product.stock }}" value="{{ line.quantity }}" />
+                <button type="submit" class="secondary-btn">Actualizar</button>
+              </form>
+            </div>
+            <div class="cart-actions">
+              <p class="price">${{ line.line_total }}</p>
+              <form method="post" action="{% url 'store:remove_from_cart' line.product.id %}">
+                {% csrf_token %}
+                <button type="submit" style="background: none; border: none; color: var(--text-2); font-size: 0.8rem; font-weight: 600; cursor: pointer;">✕ Quitar</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <aside class="cart-summary">
+        <h2>Resumen del pedido</h2>
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <strong>${{ total }}</strong>
+        </div>
+        <div class="summary-row total-row">
+          <span>Total</span>
+          <strong>${{ total }}</strong>
+        </div>
+        <a class="primary-btn full-width" href="{% url 'store:whatsapp_checkout' %}" style="margin-top: 16px;">Continuar con WhatsApp</a>
+        <form method="post" action="{% url 'store:clear_cart' %}" style="margin-top: 12px;">
+          {% csrf_token %}
+          <button type="submit" class="secondary-btn full-width">Vaciar carrito</button>
+        </form>
+      </aside>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>Tu carrito está vacío</h2>
+      <p>Explora nuestro catálogo y añade los productos que te gusten.</p>
+      <a class="primary-btn" href="{% url 'store:home' %}">Ver productos</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

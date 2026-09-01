@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block bodyclass %}login{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block branding %}{% endblock %}
+
+{% block content %}
+<div class="admin-auth-shell">
+  <div class="admin-auth-card">
+    <div class="admin-auth-brand">ROSHALYS</div>
+    <h1>{% translate 'Iniciar sesión' %}</h1>
+
+    {% if form.errors %}
+      <p class="errornote">
+        {% blocktranslate count counter=form.errors.items|length %}Corrige el siguiente error.{% plural %}Corrige los siguientes errores.{% endblocktranslate %}
+      </p>
+    {% endif %}
+
+    <form method="post" action="{{ app_path }}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      {% for field in form %}
+        <div class="form-row">
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.errors %}
+            <div class="errorlist">{{ field.errors }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <div class="submit-row">
+        <input type="submit" value="{% translate 'Iniciar sesión' %}">
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

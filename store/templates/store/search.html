@@ -1,0 +1,59 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Buscar productos | ROSHALYS{% endblock %}
+
+{% block content %}
+<section class="container" style="padding: 32px 0;">
+  <div style="margin-bottom: 24px;">
+    <h1 style="margin: 0 0 8px; font-size: 2rem;">Buscar productos</h1>
+    {% if query %}
+      <p style="color: var(--text-2); margin: 0;">Resultados para "{{ query }}"</p>
+    {% endif %}
+  </div>
+
+  <form style="margin-bottom: 32px; display: flex; gap: 12px;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre, descripción o categoría..." style="flex: 1;" />
+    <button type="submit" class="primary-btn">Buscar</button>
+  </form>
+
+  <div class="product-grid">
+    {% for product in page_obj %}
+      <article class="product-card">
+        <img src="{{ product.get_main_image }}" alt="{{ product.name }}" loading="lazy" />
+        <div class="card-body">
+          <span class="category-tag">{{ product.category.name }}</span>
+          <h3>{{ product.name }}</h3>
+          <p class="price">${{ product.price }}</p>
+          <div class="card-actions">
+            <form method="post" action="{% url 'store:add_to_cart' product.id %}" style="flex: 1;">
+              {% csrf_token %}
+              <button type="submit" class="btn-icon" title="Agregar al carrito">🛒</button>
+            </form>
+            <a class="secondary-btn" href="{% url 'store:product_detail' product.slug %}">Ver</a>
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <p>No se encontraron productos para tu búsqueda.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if is_paginated %}
+    <nav class="pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page=1&q={{ query }}">« Primera</a>
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}">← Anterior</a>
+      {% endif %}
+
+      <span class="page-info">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ query }}">Siguiente →</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}">Última »</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+</section>
+{% endblock %}

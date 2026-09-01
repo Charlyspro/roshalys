@@ -1,0 +1,89 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Mi cuenta | ROSHALYS{% endblock %}
+
+{% block content %}
+<section class="container profile-page">
+  <!-- HEADER -->
+  <div class="profile-header">
+    <h1>Hola, {{ user.first_name|default:user.username }}!</h1>
+    <p>Gestiona tu cuenta y revisa tus pedidos</p>
+  </div>
+
+  <!-- GRID PRINCIPAL -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start;">
+    
+    <!-- DATOS PERSONALES -->
+    <div>
+      <h2 style="margin: 0 0 16px; font-size: 1.2rem; font-weight: 800;">Datos personales</h2>
+      <div class="checkout-box">
+        <form method="post">
+          {% csrf_token %}
+          
+          {% if form.non_field_errors %}
+            <div class="alert alert-error" style="margin-bottom: 16px;">
+              {% for error in form.non_field_errors %}
+                <p style="margin: 0;">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% for field in form %}
+            <div class="form-group">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                <span style="color: #991B1B; font-size: 0.8rem; margin-top: 4px; display: block;">{{ field.errors.0 }}</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+
+          <button type="submit" class="primary-btn full-width" style="margin-top: 16px;">Guardar cambios</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MIS PEDIDOS -->
+    <div>
+      <h2 style="margin: 0 0 16px; font-size: 1.2rem; font-weight: 800;">Mis pedidos</h2>
+      {% if orders %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          {% for order in orders %}
+            <div class="order-card">
+              <div class="order-card-info">
+                <div class="order-id">Pedido #{{ order.pk }}</div>
+                <div class="order-meta">
+                  {{ order.created_at|date:"d/m/Y" }} — <strong>${{ order.total }}</strong>
+                </div>
+              </div>
+              <div class="order-status">
+                {{ order.get_status_display }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="checkout-box" style="text-align: center; padding: 32px 20px;">
+          <p style="color: var(--text-2); margin: 0 0 16px;">Aún no tenés pedidos</p>
+          <a href="{% url 'store:home' %}" class="primary-btn">Explorar catálogo</a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- BOTÓN SALIR -->
+  <div style="margin-top: 32px; text-align: center;">
+    <a href="{% url 'store:logout' %}" class="secondary-btn">Cerrar sesión</a>
+  </div>
+</section>
+
+<!-- RESPONSIVE -->
+<style>
+  @media (max-width: 767px) {
+    .profile-page > div:last-of-type {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
+{% endblock %}

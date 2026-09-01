@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Admin ROSHALYS{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+  </head>
+  <body class="admin-body">
+    <aside class="admin-sidebar">
+      <div class="brand">ROSHALYS Admin</div>
+      <nav>
+        <a href="{% url 'store:admin_dashboard' %}">Dashboard</a>
+        <a href="{% url 'admin:index' %}">Django Admin</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'admin:logout' %}">Cerrar sesión</a>
+        {% endif %}
+      </nav>
+    </aside>
+    <main class="admin-main">
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>
