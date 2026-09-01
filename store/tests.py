@@ -59,6 +59,39 @@ class StoreModelTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Producto Inactivo")
 
+    def test_home_shows_best_sellers_carousel_ordered_by_sales(self):
+        category = Category.objects.create(name="Electrónica", slug="electronica")
+        top = Product.objects.create(
+            category=category, name="Top Vendido", slug="top-vendido",
+            price=100.00, description="El más comprado.", stock=10, is_active=True,
+        )
+        low = Product.objects.create(
+            category=category, name="Poco Vendido", slug="poco-vendido",
+            price=100.00, description="Se vende menos.", stock=10, is_active=True,
+        )
+        order = Order.objects.create(customer_name="Cliente", customer_phone="5491111111111")
+        OrderItem.objects.create(order=order, product=top, quantity=4, price=top.price)
+        OrderItem.objects.create(order=order, product=low, quantity=1, price=low.price)
+
+        response = self.client.get(reverse("store:home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "data-interval=\"10000\"")
+        self.assertContains(response, "carousel-slide")
+        self.assertLess(
+            response.content.decode().index("Top Vendido"),
+            response.content.decode().index("Poco Vendido"),
+        )
+
+    def test_best_sellers_fills_with_active_products_when_no_sales(self):
+        category = Category.objects.create(name="Electrónica", slug="electronica")
+        Product.objects.create(
+            category=category, name="Sin Ventas", slug="sin-ventas",
+            price=50.00, description="Producto sin pedidos.", stock=10, is_active=True,
+        )
+        response = self.client.get(reverse("store:home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Sin Ventas")
+
     def test_category_slug_uniqueness(self):
         category1 = Category.objects.create(name="Categoría 1", slug="test-slug")
         with self.assertRaises(Exception):

@@ -4,24 +4,41 @@
 
 {% block content %}
 
-<!-- HERO SECTION -->
+<!-- CARRUSEL LO MÁS VENDIDO -->
 <section class="hero">
-  <div class="container hero-inner">
-    <div class="hero-copy">
-      <span class="eyebrow">Bienvenido a</span>
-      <h1>ROSHALYS</h1>
-      <p>Elegancia moderna para todos los días. Productos seleccionados para hacer tu vida más sencilla.</p>
-      <div class="hero-actions">
-        <a class="primary-btn" href="#catalog">Explorar catálogo</a>
+  <div class="container carousel" data-interval="10000">
+    {% for product in best_sellers %}
+      <div class="carousel-slide{% if forloop.first %} active{% endif %}">
+        <div class="carousel-media">
+          <img src="{{ product.get_main_image }}" alt="{{ product.name }}" loading="lazy" />
+        </div>
+        <div class="carousel-info">
+          <span class="eyebrow">⭐ Lo más vendido</span>
+          <h1>{{ product.name }}</h1>
+          <p>{{ product.description|truncatechars:120 }}</p>
+          <p class="price">${{ product.price }}</p>
+          <div class="carousel-actions">
+            <form method="post" action="{% url 'store:add_to_cart' product.id %}" style="flex: 1;">
+              {% csrf_token %}
+              <button type="submit" class="primary-btn">Agregar al carrito</button>
+            </form>
+            <a class="secondary-btn" href="{% url 'store:product_detail' product.slug %}">Ver</a>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="hero-visual">
-      {% if featured_products|length > 0 %}
-        <div style="width: 100%; height: 100%; background: url('{{ featured_products.0.get_main_image }}') center / cover; border-radius: 12px;"></div>
-      {% endif %}
-    </div>
+    {% empty %}
+      <p style="text-align: center; color: var(--text-2); padding: 32px;">No hay productos disponibles en este momento.</p>
+    {% endfor %}
   </div>
 </section>
+
+{% if best_sellers|length > 1 %}
+  <div class="carousel-nav container">
+    <button class="carousel-btn" id="carousel-prev" type="button" aria-label="Anterior">‹</button>
+    <div class="carousel-dots" id="carousel-dots"></div>
+    <button class="carousel-btn" id="carousel-next" type="button" aria-label="Siguiente">›</button>
+  </div>
+{% endif %}
 
 <!-- CATEGORÍAS -->
 <section class="container" style="margin: 48px 0;">
@@ -124,4 +141,48 @@
   {% endif %}
 </section>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const carousel = document.querySelector('.carousel[data-interval]');
+  if (!carousel) return;
+  const slides = Array.from(carousel.querySelectorAll('.carousel-slide'));
+  if (slides.length < 2) return;
+  const dotsWrap = document.getElementById('carousel-dots');
+  let current = 0;
+  let timer = null;
+  const interval = parseInt(carousel.dataset.interval, 10) || 10000;
+
+  slides.forEach(function (_, i) {
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'Ir a la diapositiva ' + (i + 1));
+    dot.addEventListener('click', function () { goTo(i); restart(); });
+    dotsWrap.appendChild(dot);
+  });
+  const dots = Array.from(dotsWrap.children);
+
+  function goTo(index) {
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = (index + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+  }
+
+  function next() { goTo(current + 1); }
+  function restart() {
+    if (timer) clearInterval(timer);
+    timer = setInterval(next, interval);
+  }
+
+  document.getElementById('carousel-prev').addEventListener('click', function () { goTo(current - 1); restart(); });
+  document.getElementById('carousel-next').addEventListener('click', function () { goTo(current + 1); restart(); });
+
+  restart();
+})();
+</script>
 {% endblock %}

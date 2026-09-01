@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -95,9 +95,28 @@ def _calculate_delivery_cost(request, delivery_option, delivery_zone=None):
     return delivery_zone.cost, None
 
 
+def _best_sellers(limit=3):
+    totals = (
+        OrderItem.objects.values("product_id")
+        .annotate(total=Sum("quantity"))
+        .order_by("-total")
+    )
+    total_by_id = {row["product_id"]: row["total"] for row in totals}
+    products = list(Product.objects.filter(pk__in=total_by_id.keys(), is_active=True))
+    products.sort(key=lambda p: total_by_id[p.pk], reverse=True)
+    if len(products) < limit:
+        used_ids = {p.pk for p in products}
+        for product in Product.objects.filter(is_active=True).exclude(pk__in=used_ids).order_by("-is_featured", "name"):
+            if len(products) >= limit:
+                break
+            products.append(product)
+    return products[:limit]
+
+
 def home(request):
     categories = Category.objects.filter(is_active=True)
     featured_products = Product.objects.filter(is_active=True, is_featured=True)[:8]
+    best_sellers = _best_sellers(3)
     all_products = Product.objects.filter(is_active=True)
     paginator = Paginator(all_products, 12)
     page_number = request.GET.get("page")
@@ -105,6 +124,7 @@ def home(request):
     return render(request, "store/home.html", {
         "categories": categories,
         "featured_products": featured_products,
+        "best_sellers": best_sellers,
         "page_obj": page_obj,
         "page_title": "Inicio",
     })

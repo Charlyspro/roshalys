@@ -520,28 +520,124 @@ input:focus, textarea:focus, select:focus {
   padding: 32px 0;
 }
 
-.hero-inner {
+/* ============================================
+   CARRUSEL LO MÁS VENDIDO
+   ============================================ */
+.carousel {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 48px;
-  padding: 48px 40px;
+  gap: 40px;
+  padding: 40px;
   background: white;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-}
-
-.hero::before {
-  display: none;
-}
-
-.hero-copy {}
-
-.hero-visual {
-  display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 280px;
+}
+
+.carousel-slide {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+
+.carousel-slide.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.carousel-media img {
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.carousel-info h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.carousel-info p {
+  margin: 12px 0 16px;
+  color: var(--text-2);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.carousel-info .price {
+  margin: 0 0 20px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.carousel-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.carousel-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px auto 0;
+}
+
+.carousel-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.carousel-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.carousel-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--transition), transform var(--transition);
+}
+
+.carousel-dot.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: scale(1.25);
 }
 
 .eyebrow {
@@ -1341,6 +1437,25 @@ input:focus, textarea:focus, select:focus {
     grid-template-columns: 1fr;
     padding: 32px 20px;
     gap: 24px;
+  }
+
+  .carousel {
+    grid-template-columns: 1fr;
+    padding: 24px 20px;
+    gap: 20px;
+  }
+
+  .carousel-slide {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .carousel-media img {
+    max-height: 240px;
+  }
+
+  .carousel-nav {
+    margin-top: 12px;
   }
 
   .hero h1 {
