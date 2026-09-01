@@ -93,6 +93,7 @@ class OrderAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
     readonly_fields = ("total", "delivery_cost", "created_at", "updated_at", "checkout_token")
     inlines = [OrderItemInline]
+    actions = ["marcar_confirmado", "marcar_preparando", "marcar_listo", "marcar_enviado", "marcar_entregado", "marcar_cancelado"]
     fieldsets = (
         ("Información del cliente", {"fields": ("customer_name", "customer_phone", "customer_email", "user")}),
         ("Estado del pedido", {"fields": ("status", "checkout_token")}),
@@ -100,3 +101,33 @@ class OrderAdmin(admin.ModelAdmin):
         ("Resumen", {"fields": ("total", "notes")}),
         ("Auditoría", {"fields": ("created_at", "updated_at")}),
     )
+
+    @admin.action(description="Marcar como Confirmado")
+    def marcar_confirmado(self, request, queryset):
+        updated = queryset.exclude(status="confirmed").update(status="confirmed")
+        self.message_user(request, f"{updated} pedido(s) marcado(s) como Confirmado.")
+
+    @admin.action(description="Marcar como En preparación")
+    def marcar_preparando(self, request, queryset):
+        updated = queryset.exclude(status="preparing").update(status="preparing")
+        self.message_user(request, f"{updated} pedido(s) marcado(s) como En preparación.")
+
+    @admin.action(description="Marcar como Listo")
+    def marcar_listo(self, request, queryset):
+        updated = queryset.exclude(status="ready").update(status="ready")
+        self.message_user(request, f"{updated} pedido(s) marcado(s) como Listo.")
+
+    @admin.action(description="Marcar como Enviado")
+    def marcar_enviado(self, request, queryset):
+        updated = queryset.exclude(status="shipped").update(status="shipped")
+        self.message_user(request, f"{updated} pedido(s) marcado(s) como Enviado.")
+
+    @admin.action(description="Marcar como Entregado")
+    def marcar_entregado(self, request, queryset):
+        updated = queryset.exclude(status="delivered").update(status="delivered")
+        self.message_user(request, f"{updated} pedido(s) marcado(s) como Entregado.")
+
+    @admin.action(description="Marcar como Cancelado")
+    def marcar_cancelado(self, request, queryset):
+        updated = queryset.exclude(status="cancelled").update(status="cancelled")
+        self.message_user(request, f"{updated} pedido(s) marcado(s) como Cancelado.")

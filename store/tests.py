@@ -550,3 +550,68 @@ class DeliveryAndCostCalculationTests(TestCase):
         self.assertEqual(order.delivery_cost, Decimal("0.00"))
         self.assertEqual(order.total, Decimal("100.00"))
 
+
+class OrderAdminActionsTests(TestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_superuser(
+            username="admin",
+            email="admin@test.local",
+            password="admin123"
+        )
+        category = Category.objects.create(name="Categoría", slug="categoria")
+        self.product = Product.objects.create(
+            category=category,
+            name="Producto",
+            slug="producto",
+            price=Decimal("100.00"),
+            description="Desc",
+            stock=5,
+            is_active=True,
+        )
+        self.order1 = Order.objects.create(
+            customer_name="Cliente Uno",
+            status="pending",
+            delivery_option="pickup",
+            total=Decimal("100.00"),
+        )
+        self.order2 = Order.objects.create(
+            customer_name="Cliente Dos",
+            status="pending",
+            delivery_option="pickup",
+            total=Decimal("100.00"),
+        )
+
+    def test_admin_order_page_shows_status_actions(self):
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse("admin:store_order_changelist"))
+        self.assertEqual(response.status_code, 200)
+        from django.contrib.admin import site
+        model_admin = site._registry[Order]
+        request = self.client.get(reverse("admin:index")).wsgi_request
+        action_names = list(model_admin.get_actions(request).keys())
+        self.assertIn("marcar_confirmado", action_names)
+        self.assertIn("marcar_enviado", action_names)
+        self.assertIn("marcar_entregado", action_names)
+        self.assertIn("marcar_cancelado", action_names)
+
+    def test_admin_mark_orders_confirmed(self):
+        self.client.force_login(self.admin_user)
+        url = reverse("admin:store_order_changelist")
+        response = self.client.post(url, {
+            "action": "marcar_confirmado",
+            "_selected_action": [str(self.order1.pk), str(self.order2.pk)],
+        })
+        self.assertIn(response.status_code, (200, 302))
+        self.assertEqual(Order.objects.get(pk=self.order1.pk).status, "confirmed")
+        self.assertEqual(Order.objects.get(pk=self.order2.pk).status, "confirmed")
+
+    def test_admin_mark_orders_delivered(self):
+        self.client.force_login(self.admin_user)
+        url = reverse("admin:store_order_changelist")
+        response = self.client.post(url, {
+            "action": "marcar_entregado",
+            "_selected_action": [str(self.order1.pk)],
+        })
+        self.assertIn(response.status_code, (200, 302))
+        self.assertEqual(Order.objects.get(pk=self.order1.pk).status, "delivered")
+
