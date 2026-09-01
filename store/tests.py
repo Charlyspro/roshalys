@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
@@ -391,6 +392,33 @@ class AdminProductManagementTests(TestCase):
         self.assertEqual(new_product.name, "Nuevo Producto")
         self.assertEqual(new_product.stock, 20)
         self.assertEqual(new_product.price, Decimal("150.00"))
+
+    def test_admin_can_create_product_with_image(self):
+        from io import BytesIO
+        from PIL import Image as PILImage
+
+        self.client.force_login(self.admin_user)
+        image_buffer = BytesIO()
+        PILImage.new("RGB", (4, 4), color=(255, 0, 0)).save(image_buffer, format="PNG")
+        image = SimpleUploadedFile(
+            "producto.png",
+            image_buffer.getvalue(),
+            content_type="image/png",
+        )
+        response = self.client.post(reverse("store:admin_products"), {
+            "name": "Producto Con Imagen",
+            "category": self.category.id,
+            "slug": "producto-con-imagen",
+            "price": "99.99",
+            "stock": "5",
+            "description": "Producto con imagen",
+            "is_active": True,
+            "image": image,
+        })
+        self.assertIn(response.status_code, (200, 302))
+        product = Product.objects.filter(slug="producto-con-imagen").first()
+        self.assertIsNotNone(product)
+        self.assertTrue(product.image)
 
     def test_admin_can_edit_product(self):
         self.client.force_login(self.admin_user)

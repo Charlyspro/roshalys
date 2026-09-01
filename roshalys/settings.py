@@ -35,9 +35,19 @@ MIDDLEWARE = [
 try:
     import whitenoise  # noqa: F401
     MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    WHITENOISE_AVAILABLE = True
 except ImportError:
-    pass
+    WHITENOISE_AVAILABLE = False
+
+if WHITENOISE_AVAILABLE and not DEBUG:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+else:
+    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
+STORAGES = {
+    "default": {"BACKEND": "store.storage.NoLockFileSystemStorage"},
+    "staticfiles": {"BACKEND": STATICFILES_STORAGE},
+}
 
 ROOT_URLCONF = "roshalys.urls"
 
