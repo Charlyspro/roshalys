@@ -2,6 +2,18 @@
 
 {% block title %}{{ product.name }} | ROSHALYS{% endblock %}
 
+{% block og_meta %}
+  <meta property="og:title" content="{{ product.name }} | ROSHALYS - ${{ product.price }}" />
+  <meta property="og:description" content="{{ product.description|truncatechars:160 }}" />
+  <meta property="og:type" content="product" />
+  <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" />
+  {% if product.image %}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}" />
+  {% elif gallery %}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ gallery.0.image.url }}" />
+  {% endif %}
+{% endblock %}
+
 {% block content %}
 <section class="container product-detail">
   <div class="detail-layout">
@@ -53,13 +65,6 @@
           </div>
           <button type="submit" class="primary-btn" style="flex: 1; margin: 0;">Añadir al carrito</button>
         </form>
-
-        <!-- WHATSAPP -->
-        <div class="detail-whatsapp">
-          <a class="whatsapp-btn full-width" href="https://wa.me/{{ whatsapp_numbers.0 }}?text={{ product.name|urlencode }}%20-%20${{ product.price }}" target="_blank" rel="noreferrer">
-            💬 Consultar por WhatsApp
-          </a>
-        </div>
       {% endif %}
     </div>
   </div>

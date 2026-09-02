@@ -284,6 +284,9 @@
                 <a href="{% url 'store:admin_edit_product' product.id %}" class="btn btn-small" style="background: #28a745;">
                   Editar
                 </a>
+                <a href="{% url 'store:admin_publish_product' product.id %}" class="btn btn-small" style="background: #25d366;">
+                  WhatsApp
+                </a>
                 <a href="{% url 'store:admin_delete_product' product.id %}" class="btn btn-small btn-danger" onclick="return confirm('¿Estás seguro de que quieres eliminar este producto?');">
                   Eliminar
                 </a>

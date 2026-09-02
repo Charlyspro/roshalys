@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.http import HttpResponse
 from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.utils.html import format_html
 
 from store.forms import ProductAdminForm, ProductImageAdminForm
 from django.contrib.auth.admin import UserAdmin
@@ -38,7 +40,7 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
-    list_display = ("name", "category", "price", "stock", "is_active", "is_featured")
+    list_display = ("name", "category", "price", "stock", "is_active", "is_featured", "wa_publish")
     list_filter = ("is_active", "is_featured", "category")
     search_fields = ("name", "description")
     prepopulated_fields = {"slug": ("name",)}
@@ -48,6 +50,13 @@ class ProductAdmin(admin.ModelAdmin):
         ("Precio y stock", {"fields": ("price", "stock", "is_active", "is_featured")}),
         ("Imagen principal", {"fields": ("image",)}),
     )
+
+    @admin.display(description="WhatsApp")
+    def wa_publish(self, obj):
+        url = reverse("store:admin_publish_product", args=[obj.pk])
+        return format_html(
+            '<a class="button" href="{}" target="_blank" rel="noreferrer">Publicar</a>', url
+        )
 
 
 @admin.register(ProductImage)
@@ -89,9 +98,9 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ("id", "customer_name", "customer_phone", "customer_email", "status", "delivery_option", "delivery_zone", "delivery_cost", "total", "created_at")
+    list_display = ("id", "customer_name", "customer_email", "status", "delivery_option", "delivery_zone", "delivery_cost", "total", "created_at")
     list_filter = ("status", "delivery_option", "delivery_zone", "created_at")
-    search_fields = ("customer_name", "customer_phone", "customer_email")
+    search_fields = ("customer_name", "customer_email")
     ordering = ("-created_at",)
     autocomplete_fields = ("user",)
     date_hierarchy = "created_at"
@@ -99,7 +108,7 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
     actions = ["marcar_confirmado", "marcar_preparando", "marcar_listo", "marcar_enviado", "marcar_entregado", "marcar_cancelado"]
     fieldsets = (
-        ("Información del cliente", {"fields": ("customer_name", "customer_phone", "customer_email", "user")}),
+        ("Información del cliente", {"fields": ("customer_name", "customer_email", "user")}),
         ("Estado del pedido", {"fields": ("status", "checkout_token")}),
         ("Envío", {"fields": ("delivery_option", "delivery_zone", "delivery_cost", "delivery_address", "delivery_notes")}),
         ("Resumen", {"fields": ("total", "notes")}),
@@ -139,7 +148,6 @@ class OrderAdmin(admin.ModelAdmin):
         for order in orders:
             links.append({
                 "order": order,
-                "customer_phone": order.customer_phone,
                 "wa_link": wa_link_for(order, status_key, SITE_NAME),
             })
         return TemplateResponse(request, "admin/order_status_action.html", {

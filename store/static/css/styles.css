@@ -4,32 +4,32 @@
    ============================================ */
 
 :root {
-  /* Base Colors - Elegant & Clean */
-  --bg: #FFFFFF;
-  --bg-2: #F8FAFC;
+  /* Base Colors - Elegant & Clean, warm undertone */
+  --bg: #FDFCFA;
+  --bg-2: #F6F4F0;
   --surface: #FFFFFF;
-  --surface-strong: #F8FAFC;
-  --surface-soft: #F3F5F7;
-  --surface-alt: #FAFBFC;
+  --surface-strong: #F6F4F0;
+  --surface-soft: #F1EFEA;
+  --surface-alt: #FAF9F6;
   
-  /* Primary Action - Dark Elegant */
-  --primary: #111827;
-  --primary-strong: #0F1419;
-  --primary-soft: rgba(17, 24, 39, 0.08);
+  /* Primary Action - Muted Emerald Green */
+  --primary: #3A6B54;
+  --primary-strong: #2F5A45;
+  --primary-soft: rgba(58, 107, 84, 0.1);
   
-  /* Accent - Subtle Gold */
-  --secondary: #D4AF37;
-  --secondary-soft: rgba(212, 175, 55, 0.1);
+  /* Accent - Warm Amber/Coral */
+  --secondary: #D99A6C;
+  --secondary-soft: rgba(217, 154, 108, 0.12);
   
-  /* Text - Hierarchy */
-  --text: #111827;
-  --text-2: #6B7280;
-  --text-3: #9CA3AF;
+  /* Text - Hierarchy, warm graphite */
+  --text: #2F3B36;
+  --text-2: #6B7A72;
+  --text-3: #9AA69E;
   
   /* UI Elements */
-  --border: #E5E7EB;
-  --shadow: rgba(0, 0, 0, 0.04);
-  --shadow-md: rgba(0, 0, 0, 0.08);
+  --border: #E7E5DF;
+  --shadow: rgba(46, 65, 54, 0.06);
+  --shadow-md: rgba(46, 65, 54, 0.10);
   
   /* Spacing */
   --radius: 12px;
@@ -41,21 +41,21 @@
 
 /* Dark Mode (if needed for future) */
 body[data-theme="dark"] {
-  --bg: #0F1419;
-  --bg-2: #1A1F2E;
-  --surface: #1A1F2E;
-  --surface-strong: #252D3D;
-  --surface-soft: #1F252F;
-  --surface-alt: #1A1F2E;
-  --primary: #F3F5F7;
-  --primary-strong: #FFFFFF;
-  --primary-soft: rgba(243, 245, 247, 0.12);
-  --secondary: #D4AF37;
-  --secondary-soft: rgba(212, 175, 55, 0.15);
-  --text: #F3F5F7;
-  --text-2: #B4BAC4;
-  --text-3: #8B92A3;
-  --border: #2D3544;
+  --bg: #1A201C;
+  --bg-2: #222B25;
+  --surface: #222B25;
+  --surface-strong: #2A352E;
+  --surface-soft: #252E28;
+  --surface-alt: #222B25;
+  --primary: #8FBFA8;
+  --primary-strong: #A7D3BD;
+  --primary-soft: rgba(143, 191, 168, 0.14);
+  --secondary: #E0AE84;
+  --secondary-soft: rgba(224, 174, 132, 0.15);
+  --text: #EDF2EE;
+  --text-2: #B9C6BD;
+  --text-3: #8E9B92;
+  --border: #334137;
   --shadow: rgba(0, 0, 0, 0.2);
   --shadow-md: rgba(0, 0, 0, 0.3);
 }
@@ -211,6 +211,15 @@ input:focus, textarea:focus, select:focus {
   position: relative;
 }
 
+.categories-menu::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 12px;
+}
+
 .dropdown {
   position: absolute;
   left: 0;
@@ -225,7 +234,8 @@ input:focus, textarea:focus, select:focus {
   z-index: 1000;
 }
 
-.categories-menu:hover .dropdown {
+.categories-menu:hover .dropdown,
+.categories-menu:focus-within .dropdown {
   display: block;
 }
 
@@ -478,6 +488,8 @@ input:focus, textarea:focus, select:focus {
 
 .categories-scroll {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
@@ -1288,7 +1300,10 @@ input:focus, textarea:focus, select:focus {
 .bottom-nav-inner {
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-evenly;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .bottom-nav a {
@@ -1316,6 +1331,52 @@ input:focus, textarea:focus, select:focus {
 .cart-nav-item .mobile-badge {
   top: 2px;
   right: 14px;
+}
+
+/* ============================================
+   WHATSAPP FLOATING BUTTON
+   ============================================ */
+
+.wa-float-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 300;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #25D366;
+  color: #fff;
+  padding: 13px 18px;
+  border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: transform var(--transition), background var(--transition), box-shadow var(--transition);
+}
+
+.wa-float-btn:hover {
+  background: #1aa34a;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 26px rgba(37, 211, 102, 0.55);
+}
+
+.wa-float-icon {
+  display: inline-flex;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.wa-float-text {
+  line-height: 1;
+}
+
+.wa-float-icon svg,
+.wa-float-icon img {
+  width: 1em;
+  height: 1em;
+  display: block;
 }
 
 /* ============================================
@@ -1516,6 +1577,12 @@ input:focus, textarea:focus, select:focus {
 
   .bottom-nav {
     display: flex;
+  }
+
+  .wa-float-btn {
+    right: 14px;
+    bottom: 76px;
+    padding: 12px 16px;
   }
 }
 

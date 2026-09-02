@@ -1,0 +1,132 @@
+{% extends 'store/admin_base.html' %}
+
+{% block title %}Publicar en WhatsApp | ROSHALYS{% endblock %}
+
+{% block content %}
+<style>
+  .pub-box {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .pub-product {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin: 16px 0;
+  }
+
+  .pub-product img {
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+
+  .pub-product h3 {
+    margin: 0 0 4px 0;
+    color: #333;
+  }
+
+  .pub-product .price {
+    color: #0f766e;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .pub-preview {
+    width: 100%;
+    min-height: 110px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+    resize: vertical;
+    background: #f9f9f9;
+    white-space: pre-wrap;
+  }
+
+  .pub-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn-whatsapp {
+    background: #25d366;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .btn-whatsapp:hover {
+    background: #1eb857;
+  }
+
+  .hint {
+    color: #666;
+    font-size: 13px;
+    margin-top: 16px;
+    line-height: 1.5;
+  }
+</style>
+
+<div class="admin-panel-box pub-box">
+  <h2>Publicar en WhatsApp</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div style="padding: 10px; margin-bottom: 15px; border-radius: 3px; {% if message.tags == 'success' %}background: #d4edda; color: #155724;{% else %}background: #f8d7da; color: #721c24;{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="pub-product">
+    {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.name }}">
+    {% endif %}
+    <div>
+      <h3>{{ product.name }}</h3>
+      <span class="price">${{ product.price }}</span> · {{ product.category.name }}
+    </div>
+  </div>
+
+  <label for="wa-message" style="font-weight: 600; color: #555;">Mensaje a publicar:</label>
+  <textarea id="wa-message" class="pub-preview" readonly>{{ message }}</textarea>
+
+  <div class="pub-actions">
+    <button type="button" id="copy-btn" class="btn">📋 Copiar mensaje</button>
+    {% if wa_link %}
+      <a href="{{ wa_link }}" target="_blank" rel="noreferrer" class="btn btn-whatsapp">Abrir WhatsApp</a>
+    {% endif %}
+    <a href="{% url 'store:admin_products' %}" class="btn" style="background: #6c757d;">Volver a productos</a>
+  </div>
+
+  <p class="hint">
+    <strong>Cómo funciona:</strong> pulsa <strong>Copiar mensaje</strong> y pégalo en tu grupo de WhatsApp
+    (o usa <strong>Abrir WhatsApp</strong> para enviarlo al chat del número del negocio).
+    El mensaje incluye el <strong>nombre</strong>, el <strong>precio</strong> y el
+    <strong>enlace del producto</strong>. Al pegar ese enlace, WhatsApp mostrará la
+    <strong>vista previa con la imagen del producto</strong> junto al mensaje.
+  </p>
+</div>
+
+<script>
+  document.getElementById("copy-btn").addEventListener("click", function () {
+    var textarea = document.getElementById("wa-message");
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(textarea.value).then(function () {
+      var btn = document.getElementById("copy-btn");
+      var old = btn.textContent;
+      btn.textContent = "✓ Copiado";
+      setTimeout(function () { btn.textContent = old; }, 1500);
+    });
+  });
+</script>
+{% endblock %}

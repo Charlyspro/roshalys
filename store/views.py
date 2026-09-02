@@ -16,6 +16,10 @@ from django.urls import reverse
 from store import config
 from store.forms import CustomerProfileForm, CustomerRegistrationForm, DeliveryForm, ProductAdminForm
 from store.models import Category, DeliveryZone, Order, OrderItem, Product, ProductDeliveryConfig
+from store.whatsapp import (
+    build_product_message,
+    product_wa_link,
+)
 
 # Loggers
 logger = logging.getLogger("store")
@@ -359,7 +363,6 @@ def _render_whatsapp_order(request, order):
     message = config.WHATSAPP_MESSAGE_TEMPLATE.format(
         order_number=order.pk,
         customer=order.customer_name,
-        phone=order.customer_phone,
         items="\n".join(item_lines),
         total=f"${order.total:.2f}",
         delivery=delivery_text,
@@ -498,6 +501,29 @@ def admin_edit_product(request, product_id):
         "form": form,
         "categories": Category.objects.all(),
         "page_title": "Productos",
+    })
+
+
+@staff_member_required
+@login_required
+def admin_publish_product(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    product_url = request.build_absolute_uri(reverse("store:product_detail", args=[product.slug]))
+
+    message = build_product_message(product, config.SITE_NAME, product_url)
+    wa_link = product_wa_link(
+        product,
+        config.WHATSAPP_NUMBERS[0] if config.WHATSAPP_NUMBERS else "",
+        config.SITE_NAME,
+        product_url,
+    )
+
+    return render(request, "store/admin_publish_product.html", {
+        "product": product,
+        "product_url": product_url,
+        "message": message,
+        "wa_link": wa_link,
+        "page_title": f"Publicar: {product.name}",
     })
 
 

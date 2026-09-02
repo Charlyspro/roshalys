@@ -8,11 +8,6 @@
   {% for item in links %}
   <li style="margin-bottom: 16px;">
     <strong>Pedido #{{ item.order.pk }}</strong> — {{ item.order.customer_name }}
-    {% if item.customer_phone %}
-      (tel: {{ item.customer_phone }})
-    {% else %}
-      <em>sin teléfono</em>
-    {% endif %}
     <br>
     <a class="button" target="_blank" rel="noreferrer"
        href="{{ item.wa_link }}">Abrir WhatsApp con {{ item.order.customer_name }}</a>

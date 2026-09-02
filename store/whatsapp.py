@@ -70,3 +70,20 @@ def wa_link_for(order, status_key, site_name="ROSHALYS"):
         return ""
     message = build_status_message(order, status_key, site_name)
     return f"https://wa.me/{number}?text={quote(message)}"
+
+
+def build_product_message(product, site_name="ROSHALYS", product_url=""):
+    """Compone el mensaje para publicar un producto (nombre, precio y enlace)."""
+    lines = [f"*{product.name}*", f"Precio: ${product.price:.2f}"]
+    if product_url:
+        lines.append(f"Ver en {site_name}: {product_url}")
+    return "\n".join(lines)
+
+
+def product_wa_link(product, number, site_name="ROSHALYS", product_url=""):
+    """Devuelve la URL wa.me con el mensaje del producto pre-cargado."""
+    if not number:
+        return ""
+    number = str(number).strip().lstrip("+").replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+    message = build_product_message(product, site_name, product_url)
+    return f"https://wa.me/{number}?text={quote(message)}"

@@ -21,4 +21,5 @@ urlpatterns = [
     path("admin-productos/", views.admin_products, name="admin_products"),
     path("admin-productos/editar/<int:product_id>/", views.admin_edit_product, name="admin_edit_product"),
     path("admin-productos/eliminar/<int:product_id>/", views.admin_delete_product, name="admin_delete_product"),
+    path("admin-productos/publicar/<int:product_id>/", views.admin_publish_product, name="admin_publish_product"),
 ]

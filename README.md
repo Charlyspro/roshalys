@@ -2,6 +2,8 @@
 
 ROSHALYS es una tienda online MVP desarrollada con Django, SQLite y una arquitectura sencilla para facilitar mantenimiento y despliegue posterior en hosting.
 
+> **📋 Para desarrolladores/agentes:** consulta **[STORE_SUMMARY.md](STORE_SUMMARY.md)** — resumen actual de la tienda (estructura, flujo de compra, colores actuales, despliegue y cambios recientes).
+
 > **⚠️ Versión Wasmer Edge**: esta copia ha sido adaptada para desplegarse en [Wasmer Edge](https://wasmer.io) usando la detección automática de proyectos Django (Python/USD en el borde). Consulta la sección [Despliegue en Wasmer Edge](#despliegue-en-wasmer-edge) más abajo.
 
 ## Requisitos

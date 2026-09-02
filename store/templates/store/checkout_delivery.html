@@ -26,7 +26,7 @@
         <!-- INFORMACIÓN PERSONAL -->
         <h2 style="font-size: 1rem; margin: 0 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">Información personal</h2>
         {% for field in form %}
-          {% if field.name != 'delivery_option' and field.name != 'delivery_address' and field.name != 'delivery_notes' and field.name != 'checkout_token' %}
+          {% if field.name != 'delivery_option' and field.name != 'delivery_zone' and field.name != 'customer_email' and field.name != 'delivery_address' and field.name != 'delivery_notes' and field.name != 'checkout_token' %}
             <div class="form-group">
               <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
               {{ field }}

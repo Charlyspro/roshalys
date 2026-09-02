@@ -26,7 +26,7 @@
       <div style="display: flex; flex-direction: column; gap: 12px;">
         {% for number in numbers %}
           <a class="whatsapp-btn full-width" href="https://wa.me/{{ number }}?text={{ message|urlencode }}" target="_blank" rel="noreferrer">
-            💬 Enviar a {{ number }}
+            💬 Enviar por WhatsApp
           </a>
         {% endfor %}
         <a class="secondary-btn full-width" href="{% url 'store:home' %}" style="text-align: center;">Volver al inicio</a>

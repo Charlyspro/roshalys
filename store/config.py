@@ -8,7 +8,7 @@ WHATSAPP_NUMBERS = [
     number.strip()
     for number in config(
         "WHATSAPP_NUMBERS",
-        default="54279546,55502491",
+        default="",
     ).split(",")
     if number.strip()
 ]
@@ -21,7 +21,6 @@ BUTTON_COLOR = config("BUTTON_COLOR", default="#0f766e")
 WHATSAPP_MESSAGE_TEMPLATE = (
     "Hola, quiero realizar el pedido #{order_number}:\n"
     "Cliente: {customer}\n"
-    "Teléfono: {phone}\n"
     "{items}\n"
     "{delivery}\n"
     "Total: {total}"

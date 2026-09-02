@@ -663,3 +663,71 @@ class OrderAdminActionsTests(TestCase):
         self.assertIn("confirmado", content)
         self.assertEqual(Order.objects.get(pk=self.order1.pk).status, "confirmed")
 
+
+class AdminPublishProductTests(TestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_superuser(
+            username="admin", email="admin@test.local", password="admin123"
+        )
+        self.category = Category.objects.create(name="Electrónica", slug="electronica")
+        self.product = Product.objects.create(
+            category=self.category,
+            name="Producto Publicable",
+            slug="producto-publicable",
+            price=Decimal("99.99"),
+            description="Descripción de prueba para el grupo.",
+            stock=10,
+            is_active=True,
+        )
+
+    def test_publish_page_requires_staff(self):
+        response = self.client.get(reverse("store:admin_publish_product", args=[self.product.pk]))
+        self.assertEqual(response.status_code, 302)
+
+    def test_publish_page_shows_message_with_price_and_description(self):
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse("store:admin_publish_product", args=[self.product.pk]))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn("*Producto Publicable*", content)
+        self.assertIn("Precio: $99.99", content)
+        self.assertIn("producto-publicable", content)
+
+    def test_publish_message_has_contact_numbers(self):
+        from store.whatsapp import build_product_message
+        message = build_product_message(self.product, "ROSHALYS", "https://roshalys.wasmer.app/producto/producto-publicable")
+        self.assertIn("$99.99", message)
+        self.assertIn("Producto Publicable", message)
+        self.assertNotIn("Descripción", message)
+        self.assertNotIn("Escríbanos", message)
+
+    def test_product_page_exposes_open_graph_image(self):
+        from io import BytesIO
+        from PIL import Image as PILImage
+
+        image_buffer = BytesIO()
+        PILImage.new("RGB", (4, 4), color=(255, 0, 0)).save(image_buffer, format="PNG")
+        product = Product.objects.create(
+            category=self.category,
+            name="Producto Con Foto",
+            slug="producto-con-foto",
+            price=Decimal("50.00"),
+            description="Foto de prueba para Open Graph.",
+            stock=5,
+            is_active=True,
+            image=SimpleUploadedFile("foto.png", image_buffer.getvalue(), content_type="image/png"),
+        )
+        response = self.client.get(reverse("store:product_detail", args=[product.slug]))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn('property="og:image"', content)
+        self.assertIn('property="og:type" content="product"', content)
+        self.assertIn("/media/", content)
+
+    def test_product_admin_list_has_whatsapp_publish_link(self):
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse("admin:store_product_changelist"))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn("/admin-productos/publicar/", content)
+

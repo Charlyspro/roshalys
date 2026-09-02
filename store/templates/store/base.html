@@ -5,9 +5,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="ROSHALYS - Elegancia moderna. Tienda online con compra fácil, entrega rápida y WhatsApp integrado." />
-    <meta property="og:title" content="ROSHALYS - Elegancia Moderna" />
-    <meta property="og:description" content="Compra fácil, entrega rápida, WhatsApp integrado." />
-    <meta property="og:type" content="website" />
+    {% block og_meta %}
+      <meta property="og:title" content="ROSHALYS - Elegancia Moderna" />
+      <meta property="og:description" content="Compra fácil, entrega rápida, WhatsApp integrado." />
+      <meta property="og:type" content="website" />
+    {% endblock %}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -111,11 +113,7 @@
         <div>
           <h4>Contacto</h4>
           <ul>
-            {% if whatsapp_numbers %}
-              {% for number in whatsapp_numbers %}
-                <li><a href="https://wa.me/{{ number }}" target="_blank" rel="noreferrer">WhatsApp</a></li>
-              {% endfor %}
-            {% endif %}
+            <li><a href="{{ whatsapp_link }}" target="_blank" rel="noreferrer">WhatsApp</a></li>
           </ul>
         </div>
       </div>
@@ -141,12 +139,10 @@
             <span class="cart-count-badge mobile-badge">{{ cart_count }}</span>
           {% endif %}
         </a>
-        {% if whatsapp_numbers %}
-          <a href="https://wa.me/{{ whatsapp_numbers.0 }}" target="_blank" rel="noreferrer">
-            <span class="nav-icon">💬</span>
-            WhatsApp
-          </a>
-        {% endif %}
+        <a href="{{ whatsapp_link }}" target="_blank" rel="noreferrer">
+          <span class="nav-icon">💬</span>
+          WhatsApp
+        </a>
         {% if user.is_authenticated %}
           <a href="{% url 'store:profile' %}">
             <span class="nav-icon">👤</span>
@@ -167,6 +163,15 @@
         // Future enhancements can go here
       })();
     </script>
+
+    <a class="wa-float-btn" href="{{ whatsapp_link }}" target="_blank" rel="noreferrer" aria-label="Contactar por WhatsApp">
+      <span class="wa-float-icon">
+        <svg viewBox="0 0 32 32" fill="currentColor" width="1em" height="1em" aria-hidden="true">
+          <path d="M16.004 3.2c-7.063 0-12.8 5.737-12.8 12.8 0 2.256.59 4.46 1.71 6.405L3.2 28.8l6.56-1.717a12.74 12.74 0 0 0 6.244 1.589h.005c7.063 0 12.8-5.737 12.8-12.8s-5.737-12.672-12.8-12.672zm0 23.36h-.005a10.6 10.6 0 0 1-5.4-1.48l-.387-.23-3.99 1.045 1.065-3.89-.252-.39a10.53 10.53 0 0 1-1.62-5.655c0-5.86 4.77-10.626 10.635-10.626 2.84 0 5.51 1.107 7.516 3.116a10.55 10.55 0 0 1 3.117 7.51c0 5.86-4.77 10.59-10.68 10.59zm5.83-7.947c-.32-.16-1.89-.932-2.184-1.038-.293-.107-.506-.16-.72.16-.213.32-.826 1.038-1.013 1.251-.186.213-.374.24-.693.08-.32-.16-1.35-.497-2.57-1.585-.95-.848-1.592-1.894-1.778-2.214-.187-.32-.02-.493.14-.652.144-.144.32-.374.48-.56.16-.187.213-.32.32-.533.107-.213.053-.4-.027-.56-.08-.16-.72-1.736-.987-2.376-.26-.625-.524-.54-.72-.55l-.613-.01c-.213 0-.56.08-.854.4-.293.32-1.118 1.093-1.118 2.666 0 1.573 1.145 3.093 1.305 3.307.16.213 2.254 3.44 5.46 4.824.763.33 1.358.527 1.822.674.766.243 1.463.209 2.014.127.614-.092 1.89-.773 2.157-1.52.266-.746.266-1.386.186-1.52-.08-.133-.293-.213-.613-.373z"/>
+        </svg>
+      </span>
+      <span class="wa-float-text">Escríbenos</span>
+    </a>
 
     {% block scripts %}{% endblock %}
   </body>
