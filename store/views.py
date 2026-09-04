@@ -1,5 +1,8 @@
 from decimal import Decimal
+import json
 import logging
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 import uuid
 
 from django.contrib import messages
@@ -10,6 +13,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -41,6 +45,69 @@ def _parse_quantity(value):
     except (TypeError, ValueError):
         return None
     return quantity if quantity > 0 else None
+
+
+def ollama_chat(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Método no permitido."}, status=405)
+
+    if not config.OLLAMA_ENABLED:
+        return JsonResponse(
+            {"error": "El asistente de ventas no está habilitado."},
+            status=503,
+        )
+
+    try:
+        payload = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Solicitud inválida."}, status=400)
+
+    question = str(payload.get("message", "")).strip()
+    if not question or len(question) > 600:
+        return JsonResponse({"error": "Escribe una consulta de hasta 600 caracteres."}, status=400)
+
+    products = Product.objects.filter(is_active=True).select_related("category").order_by("name")[:80]
+    catalog = "\n".join(
+        f"- {product.name} | Categoría: {product.category.name} | Precio: ${product.price} | "
+        f"Stock: {'disponible' if product.stock > 0 else 'agotado'} | {product.description[:240]}"
+        for product in products
+    )
+    system_prompt = (
+        f"Eres el asistente de ventas de {config.SITE_NAME}. Responde siempre en español, de forma breve y amable. "
+        "Usa únicamente el catálogo proporcionado. No inventes productos, precios, stock, descuentos ni fechas de entrega. "
+        "Si no encuentras la respuesta, indica que pueden contactar por WhatsApp. Nunca confirmes una compra ni cambies pedidos.\n\n"
+        f"CATÁLOGO ACTUAL:\n{catalog or 'No hay productos activos.'}"
+    )
+    ollama_payload = json.dumps({
+        "model": config.OLLAMA_MODEL,
+        "stream": False,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": question},
+        ],
+        "options": {"temperature": 0.2},
+    }).encode("utf-8")
+
+    try:
+        ollama_request = Request(
+            f"{config.OLLAMA_URL.rstrip('/')}/api/chat",
+            data=ollama_payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urlopen(ollama_request, timeout=config.OLLAMA_TIMEOUT) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except (OSError, URLError, TimeoutError, json.JSONDecodeError) as error:
+        logger.warning("Ollama no disponible: %s", error)
+        return JsonResponse(
+            {"error": "El asistente local no está disponible. Comprueba que Ollama esté ejecutándose."},
+            status=503,
+        )
+
+    answer = str(result.get("message", {}).get("content", "")).strip()
+    if not answer:
+        return JsonResponse({"error": "El asistente no devolvió una respuesta."}, status=502)
+    return JsonResponse({"answer": answer})
 
 
 def _cart_items(request):

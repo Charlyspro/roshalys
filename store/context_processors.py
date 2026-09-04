@@ -24,4 +24,5 @@ def store_settings(request):
         "cart_count": cart_count,
         "whatsapp_number": whatsapp_number,
         "whatsapp_link": f"https://wa.me/{whatsapp_number}" if whatsapp_number else "https://wa.me/",
+        "ollama_enabled": config.OLLAMA_ENABLED,
     }

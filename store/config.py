@@ -18,6 +18,11 @@ BACKGROUND_COLOR = config("BACKGROUND_COLOR", default="#f8fafc")
 TEXT_COLOR = config("TEXT_COLOR", default="#1f2937")
 BUTTON_COLOR = config("BUTTON_COLOR", default="#0f766e")
 
+OLLAMA_ENABLED = config("OLLAMA_ENABLED", default=False, cast=bool)
+OLLAMA_URL = config("OLLAMA_URL", default="http://127.0.0.1:11434")
+OLLAMA_MODEL = config("OLLAMA_MODEL", default="gemma4:latest")
+OLLAMA_TIMEOUT = config("OLLAMA_TIMEOUT", default=45, cast=int)
+
 WHATSAPP_MESSAGE_TEMPLATE = (
     "Hola, quiero realizar el pedido #{order_number}:\n"
     "Cliente: {customer}\n"
