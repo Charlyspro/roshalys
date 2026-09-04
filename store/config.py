@@ -12,11 +12,11 @@ WHATSAPP_NUMBERS = [
     ).split(",")
     if number.strip()
 ]
-PRIMARY_COLOR = config("PRIMARY_COLOR", default="#1E3A8A")
-SECONDARY_COLOR = config("SECONDARY_COLOR", default="#F97316")
-BACKGROUND_COLOR = config("BACKGROUND_COLOR", default="#F3F4F6")
-TEXT_COLOR = config("TEXT_COLOR", default="#1F2937")
-BUTTON_COLOR = config("BUTTON_COLOR", default="#F97316")
+PRIMARY_COLOR = config("PRIMARY_COLOR", default="#14213D")
+SECONDARY_COLOR = config("SECONDARY_COLOR", default="#2563EB")
+BACKGROUND_COLOR = config("BACKGROUND_COLOR", default="#F8FAFC")
+TEXT_COLOR = config("TEXT_COLOR", default="#0F172A")
+BUTTON_COLOR = config("BUTTON_COLOR", default="#2563EB")
 
 OLLAMA_ENABLED = config("OLLAMA_ENABLED", default=False, cast=bool)
 OLLAMA_URL = config("OLLAMA_URL", default="http://127.0.0.1:11434")
