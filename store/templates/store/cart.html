@@ -45,7 +45,7 @@
           <span>Total</span>
           <strong>${{ total }}</strong>
         </div>
-        <a class="primary-btn full-width" href="{% url 'store:whatsapp_checkout' %}" style="margin-top: 16px;">Continuar con WhatsApp</a>
+        <a class="cta-btn full-width" href="{% url 'store:whatsapp_checkout' %}" style="margin-top: 16px;">Continuar con WhatsApp</a>
         <form method="post" action="{% url 'store:clear_cart' %}" style="margin-top: 12px;">
           {% csrf_token %}
           <button type="submit" class="secondary-btn full-width">Vaciar carrito</button>

@@ -4,33 +4,42 @@
    ============================================ */
 
 :root {
-  /* Base Colors - Elegant & Clean, warm undertone */
-  --bg: #FDFCFA;
-  --bg-2: #F6F4F0;
+  /* ============================================
+     ROSHALYS - "Azul Confianza & Naranja Dinámico"
+     Primary: Azul Marino (Confianza/Identidad)
+     Accent:  Naranja Vibrante (Conversión/CTA)
+     ============================================ */
+
+  /* Backgrounds - Gris Claro Neutro */
+  --bg: #F3F4F6;
+  --bg-2: #E5E7EB;
   --surface: #FFFFFF;
-  --surface-strong: #F6F4F0;
-  --surface-soft: #F1EFEA;
-  --surface-alt: #FAF9F6;
-  
-  /* Primary Action - Muted Emerald Green */
-  --primary: #3A6B54;
-  --primary-strong: #2F5A45;
-  --primary-soft: rgba(58, 107, 84, 0.1);
-  
-  /* Accent - Warm Amber/Coral */
-  --secondary: #D99A6C;
-  --secondary-soft: rgba(217, 154, 108, 0.12);
-  
-  /* Text - Hierarchy, warm graphite */
-  --text: #2F3B36;
-  --text-2: #6B7A72;
-  --text-3: #9AA69E;
-  
+  --surface-strong: #E5E7EB;
+  --surface-soft: #F3F4F6;
+  --surface-alt: #F9FAFB;
+
+  /* Primary Action - Azul Marino / Rey (Identidad)
+     Nav superior, logos, enlaces, títulos, tablas */
+  --primary: #1E3A8A;
+  --primary-strong: #172F6E;
+  --primary-soft: rgba(30, 58, 138, 0.12);
+
+  /* Accent - Naranja Vibrante (EXCLUSIVO conversión/CTA)
+     Botones de compra, badges de ofertas, notificaciones */
+  --secondary: #F97316;
+  --secondary-strong: #EA580C;
+  --secondary-soft: rgba(249, 115, 22, 0.14);
+
+  /* Text - Carbón (lectura nítida y profesional) */
+  --text: #1F2937;
+  --text-2: #4B5563;
+  --text-3: #6B7280;
+
   /* UI Elements */
-  --border: #E7E5DF;
-  --shadow: rgba(46, 65, 54, 0.06);
-  --shadow-md: rgba(46, 65, 54, 0.10);
-  
+  --border: #D1D5DB;
+  --shadow: rgba(15, 23, 42, 0.06);
+  --shadow-md: rgba(15, 23, 42, 0.10);
+
   /* Spacing */
   --radius: 12px;
   --radius-sm: 8px;
@@ -41,21 +50,22 @@
 
 /* Dark Mode (if needed for future) */
 body[data-theme="dark"] {
-  --bg: #1A201C;
-  --bg-2: #222B25;
-  --surface: #222B25;
-  --surface-strong: #2A352E;
-  --surface-soft: #252E28;
-  --surface-alt: #222B25;
-  --primary: #8FBFA8;
-  --primary-strong: #A7D3BD;
-  --primary-soft: rgba(143, 191, 168, 0.14);
-  --secondary: #E0AE84;
-  --secondary-soft: rgba(224, 174, 132, 0.15);
-  --text: #EDF2EE;
-  --text-2: #B9C6BD;
-  --text-3: #8E9B92;
-  --border: #334137;
+  --bg: #111827;
+  --bg-2: #1F2937;
+  --surface: #1F2937;
+  --surface-strong: #27364A;
+  --surface-soft: #1B2432;
+  --surface-alt: #1F2937;
+  --primary: #60A5FA;
+  --primary-strong: #93C5FD;
+  --primary-soft: rgba(96, 165, 250, 0.14);
+  --secondary: #FB923C;
+  --secondary-strong: #FDBA74;
+  --secondary-soft: rgba(251, 146, 60, 0.15);
+  --text: #F3F4F6;
+  --text-2: #D1D5DB;
+  --text-3: #9CA3AF;
+  --border: #374151;
   --shadow: rgba(0, 0, 0, 0.2);
   --shadow-md: rgba(0, 0, 0, 0.3);
 }
@@ -134,8 +144,8 @@ input:focus, textarea:focus, select:focus {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 1px 2px var(--shadow);
 }
 
@@ -167,7 +177,7 @@ input:focus, textarea:focus, select:focus {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--primary);
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-weight: 800;
@@ -197,7 +207,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .main-nav a {
-  color: var(--text);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 0.95rem;
   font-weight: 500;
   transition: color var(--transition);
@@ -263,15 +273,15 @@ input:focus, textarea:focus, select:focus {
 .search-box {
   display: flex;
   align-items: center;
-  background: var(--surface-soft);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: var(--radius-lg);
   overflow: hidden;
   transition: border-color var(--transition);
 }
 
 .search-box:focus-within {
-  border-color: var(--primary);
+  border-color: var(--secondary);
 }
 
 .desktop-search {
@@ -285,16 +295,21 @@ input:focus, textarea:focus, select:focus {
   background: transparent;
   padding: 10px 14px;
   font-size: 0.9rem;
+  color: #ffffff;
+}
+
+.desktop-search input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .desktop-search button,
 .mobile-search button {
   border: none;
   background: transparent;
-  color: var(--primary);
+  color: #ffffff;
   font-weight: 600;
   padding: 10px 14px;
-  border-left: 1px solid var(--border);
+  border-left: 1px solid rgba(255, 255, 255, 0.24);
 }
 
 .desktop-search button:hover {
@@ -332,14 +347,14 @@ input:focus, textarea:focus, select:focus {
   height: 36px;
   border-radius: var(--radius);
   border: none;
-  background: var(--surface-soft);
-  color: var(--text);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
   font-size: 1.1rem;
   transition: background var(--transition);
 }
 
 .cart-link:hover {
-  background: var(--surface-strong);
+  background: rgba(255, 255, 255, 0.26);
 }
 
 .cart-count-badge {
@@ -350,7 +365,7 @@ input:focus, textarea:focus, select:focus {
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  background: var(--primary);
+  background: var(--secondary);
   color: white;
   font-size: 0.65rem;
   font-weight: 800;
@@ -403,6 +418,43 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* ============================================
+   HEADER CONTEXTUAL (azul marino de identidad)
+   Elementos dentro del header adaptados para
+   mantener contraste accesible sobre --primary
+   ============================================ */
+#header,
+.site-header .text-link {
+  color: #ffffff;
+}
+
+.site-header .text-link:hover {
+  color: var(--secondary);
+}
+
+.site-header .secondary-btn {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #ffffff;
+}
+
+.site-header .secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: #ffffff;
+}
+
+.site-header .menu-button {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.site-header .menu-button:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.site-header .mobile-search-wrap {
+  border-top-color: rgba(255, 255, 255, 0.14);
+}
+
+/* ============================================
    BUTTONS
    ============================================ */
 
@@ -431,6 +483,23 @@ input:focus, textarea:focus, select:focus {
 }
 
 .primary-btn.full-width {
+  width: 100%;
+}
+
+/* CTA de conversión - Naranja Vibrante
+   Botones de compra, "Agregar al carrito", checkout, ofertas.
+   USO EXCLUSIVO: acciones que buscan conversión. */
+.cta-btn {
+  background: var(--secondary);
+  color: white;
+}
+
+.cta-btn:hover {
+  background: var(--secondary-strong);
+  transform: translateY(-1px);
+}
+
+.cta-btn.full-width {
   width: 100%;
 }
 
@@ -821,9 +890,9 @@ input:focus, textarea:focus, select:focus {
 }
 
 .btn-icon:hover {
-  background: var(--primary);
+  background: var(--secondary);
   color: white;
-  border-color: var(--primary);
+  border-color: var(--secondary);
 }
 
 .secondary-btn {
@@ -1374,18 +1443,19 @@ input:focus, textarea:focus, select:focus {
 
 .ai-chat { position: fixed; right: 24px; bottom: 86px; z-index: 20; font-size: 14px; }
 .ai-chat-toggle { border: 0; border-radius: 24px; background: var(--text, #1f2937); color: #fff; padding: 12px 17px; box-shadow: 0 8px 24px rgba(15, 23, 42, .2); cursor: pointer; font-weight: 700; }
-.ai-chat-toggle span:first-child { color: #f59e0b; margin-right: 6px; }
+.ai-chat-toggle span:first-child { color: var(--secondary, #F97316); margin-right: 6px; }
 .ai-chat-panel { width: min(360px, calc(100vw - 32px)); height: 470px; margin-bottom: 10px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 18px 45px rgba(15, 23, 42, .2); overflow: hidden; display: flex; flex-direction: column; }
-.ai-chat-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--primary, #0f766e); color: #fff; }
+.ai-chat-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--primary, #1E3A8A); color: #fff; }
 .ai-chat-header small { display: block; opacity: .8; margin-top: 3px; }
 .ai-chat-close { border: 0; background: transparent; color: #fff; font-size: 24px; cursor: pointer; }
 .ai-chat-messages { flex: 1; overflow-y: auto; padding: 14px; background: #f8fafc; }
 .ai-message { max-width: 88%; padding: 10px 12px; margin: 0 0 10px; border-radius: 10px; line-height: 1.45; white-space: pre-wrap; }
 .ai-message-bot { background: #fff; border: 1px solid #e5e7eb; }
-.ai-message-user { margin-left: auto; background: var(--primary, #0f766e); color: #fff; }
+.ai-message-user { margin-left: auto; background: var(--primary, #1E3A8A); color: #fff; }
 .ai-chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #e5e7eb; background: #fff; }
 .ai-chat-form input { min-width: 0; flex: 1; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; }
-.ai-chat-form button { width: 42px; border: 0; border-radius: 8px; background: var(--primary, #0f766e); color: #fff; cursor: pointer; }
+.ai-chat-form button { width: 42px; border: 0; border-radius: 8px; background: var(--secondary, #F97316); color: #fff; cursor: pointer; transition: background var(--transition); }
+.ai-chat-form button:hover { background: var(--secondary-strong, #EA580C); }
 @media (max-width: 600px) { .ai-chat { right: 16px; bottom: 76px; } .ai-chat-panel { height: min(470px, calc(100vh - 150px)); } }
 
 .wa-float-icon svg,

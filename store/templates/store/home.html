@@ -20,7 +20,7 @@
           <div class="carousel-actions">
             <form method="post" action="{% url 'store:add_to_cart' product.id %}" style="flex: 1;">
               {% csrf_token %}
-              <button type="submit" class="primary-btn">Agregar al carrito</button>
+              <button type="submit" class="cta-btn">Agregar al carrito</button>
             </form>
             <a class="secondary-btn" href="{% url 'store:product_detail' product.slug %}">Ver</a>
           </div>
