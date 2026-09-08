@@ -248,35 +248,6 @@
 })();
 </script>
 
-<!-- PANEL DE VISITAS Y OPINIÓN -->
-<section class="visits-panel">
-  <h2 class="visits-title">Nos visitan de todo el mundo</h2>
-  {% if visitor_countries %}
-  <div class="visits-flags">
-    {% for country in visitor_countries %}
-      <div class="visits-flag" title="{{ country.name }} ({{ country.count }} visitas hoy)">
-        <img src="https://flagcdn.com/w40/{{ country.code|lower }}.png"
-             srcset="https://flagcdn.com/w80/{{ country.code|lower }}.png 2x"
-             alt="{{ country.name }}" loading="lazy" width="40" height="26">
-        <span>{{ country.name }}</span>
-      </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <p class="visits-empty">Hoy empezamos a reunir banderitas... ¡tú puedes ser el primero!</p>
-  {% endif %}
-
-  <div class="visits-feedback">
-    <span class="visits-question">¿Te gusta lo que viste?</span>
-    <form id="feedback-form" class="visits-buttons">
-      {% csrf_token %}
-      <button type="submit" name="rating" value="like" class="visits-btn visits-btn-like">👍 Me gusta</button>
-      <button type="submit" name="rating" value="dislike" class="visits-btn visits-btn-dislike">👎 No me gusta</button>
-    </form>
-    <p id="feedback-thanks" class="visits-thanks" hidden>¡Gracias por tu opinión!</p>
-  </div>
-</section>
-
 <script>
 (function () {
   var form = document.getElementById('feedback-form');
