@@ -10,6 +10,7 @@
   <div class="admin-auth-card">
     <div class="admin-auth-brand">ROSHALYS</div>
     <h1>{% translate 'Iniciar sesión' %}</h1>
+    <p class="admin-auth-sub">Acceso exclusivo para el equipo de ROSHALYS</p>
 
     {% if form.errors %}
       <p class="errornote">
@@ -33,6 +34,10 @@
         <input type="submit" value="{% translate 'Iniciar sesión' %}">
       </div>
     </form>
+
+    <div class="admin-auth-footer">
+      <a href="/">Volver a la tienda</a>
+    </div>
   </div>
 </div>
 {% endblock %}

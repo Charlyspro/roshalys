@@ -1,4 +1,5 @@
 {% extends 'store/base.html' %}
+{% load l10n %}
 
 {% block title %}Datos de entrega | ROSHALYS{% endblock %}
 
@@ -26,7 +27,7 @@
         <!-- INFORMACIÓN PERSONAL -->
         <h2 style="font-size: 1rem; margin: 0 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">Información personal</h2>
         {% for field in form %}
-          {% if field.name != 'delivery_option' and field.name != 'delivery_zone' and field.name != 'customer_email' and field.name != 'delivery_address' and field.name != 'delivery_notes' and field.name != 'checkout_token' %}
+          {% if field.name != 'delivery_option' and field.name != 'delivery_zone' and field.name != 'customer_email' and field.name != 'delivery_address' and field.name != 'delivery_notes' and field.name != 'checkout_token' and field.name != 'accept_delivery_late' %}
             <div class="form-group">
               <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
               {{ field }}
@@ -56,11 +57,27 @@
                 {% if forloop.first %}
                   Recoge tu pedido directamente en nuestro local.
                 {% else %}
-                  Te lo envíamos a tu dirección.
+                  Te lo envíamos a tu dirección. <strong style="display:block; margin-top:2px;">Domicilios: de {{ delivery_window.hours_text }}.</strong>
                 {% endif %}
               </div>
             </label>
           {% endfor %}
+        </div>
+
+
+        <!-- AVISO FUERA DE HORARIO DE DOMICILIO -->
+        <div id="delivery-late-row" {% if delivery_window.active or not form.delivery_option.value %}style="display:none;"{% endif %}>
+          <div style="background: #FFF7ED; border: 1px solid #FDBA74; color: #9A3412; border-radius: var(--radius-lg); padding: 14px; margin: 12px 0; font-size: 0.92rem;">
+            <strong>Estás fuera del horario de domicilio ({{ delivery_window.hours_text }}).</strong><br>
+            Tu pedido se entregará {{ delivery_window.resume_label|default:"al día siguiente" }}.
+          </div>
+          <label style="display:flex; gap:8px; align-items:flex-start; font-size:0.92rem;">
+            {{ form.accept_delivery_late }}
+            <span>{{ form.accept_delivery_late.label }}</span>
+          </label>
+          {% if form.accept_delivery_late.errors %}
+            <span style="color: #991B1B; font-size: 0.8rem;">{{ form.accept_delivery_late.errors.0 }}</span>
+          {% endif %}
         </div>
 
         <!-- CAMPOS DE ENTREGA (CONDICIONALES) -->
@@ -91,6 +108,10 @@
             <span>Costo de domicilio</span>
             <strong id="delivery-cost-value">$0</strong>
           </div>
+          <div class="summary-row" id="delivery-min-row" style="display: none; margin-top: 8px;">
+            <span style="color: #991B1B;">Envío a domicilio desde ${% localize off %}{{ delivery_min_total }}{% endlocalize %}</span>
+            <strong style="color: #991B1B;" id="delivery-min-short">$0.00</strong>
+          </div>
           <div class="summary-row total-row">
             <span>Total de tu pedido</span>
             <strong id="total-value" style="font-size: 1.2rem;">${{ total }}</strong>
@@ -99,7 +120,7 @@
 
         <!-- BOTONES -->
         <div style="display: flex; gap: 12px; flex-direction: column;">
-          <button type="submit" class="cta-btn full-width">Continuar al resumen</button>
+          <button type="submit" id="checkout-submit" class="cta-btn full-width">Continuar al resumen</button>
           <a class="secondary-btn full-width" href="{% url 'store:cart' %}" style="text-align: center;">← Volver al carrito</a>
         </div>
       </form>
@@ -147,12 +168,18 @@ document.addEventListener('DOMContentLoaded', function() {
   var sidebarDeliveryCost = document.getElementById('sidebar-delivery-cost');
   var sidebarDeliveryValue = document.getElementById('sidebar-delivery-value');
   var sidebarTotal = document.getElementById('sidebar-total');
-  var subtotal = parseFloat("{{ total }}");
+  var subtotal = parseFloat("{% localize off %}{{ total }}{% endlocalize %}");
+  var deliveryMin = parseFloat("{% localize off %}{{ delivery_min_total }}{% endlocalize %}");
+  var deliveryMinRow = document.getElementById('delivery-min-row');
+  var deliveryMinShort = document.getElementById('delivery-min-short');
+  var checkoutSubmit = document.getElementById('checkout-submit');
+  var deliveryLateRow = document.getElementById('delivery-late-row');
+  var deliveryOpen = {% if delivery_window.active %}true{% else %}false{% endif %};
   
   // Zonas con sus costos (desde el servidor)
   var zones = {
     {% for zone in delivery_zones %}
-      "{{ zone.id }}": parseFloat("{{ zone.cost }}"){% if not forloop.last %},{% endif %}
+      "{{ zone.id }}": parseFloat("{% localize off %}{{ zone.cost }}{% endlocalize %}"){% if not forloop.last %},{% endif %}
     {% endfor %}
   };
   
@@ -174,14 +201,28 @@ document.addEventListener('DOMContentLoaded', function() {
     var total = subtotal + deliveryCost;
     totalValue.textContent = '$' + total.toFixed(2);
     sidebarTotal.textContent = '$' + total.toFixed(2);
+    
+    if (selected && selected.value === 'delivery') {
+      if (subtotal < deliveryMin) {
+        deliveryMinRow.style.display = 'flex';
+        deliveryMinShort.textContent = '$' + (deliveryMin - subtotal).toFixed(2);
+        if (checkoutSubmit) { checkoutSubmit.disabled = true; checkoutSubmit.style.opacity = '0.5'; }
+      } else {
+        deliveryMinRow.style.display = 'none';
+        if (checkoutSubmit) { checkoutSubmit.disabled = false; checkoutSubmit.style.opacity = ''; }
+      }
+    } else {
+      deliveryMinRow.style.display = 'none';
+      if (checkoutSubmit) { checkoutSubmit.disabled = false; checkoutSubmit.style.opacity = ''; }
+    }
   }
   
   function toggleFields() {
     var selected = document.querySelector('input[name="delivery_option"]:checked');
-    if (selected && selected.value === 'delivery') {
-      deliveryFields.style.display = 'block';
-    } else {
-      deliveryFields.style.display = 'none';
+    var delivery = selected && selected.value === 'delivery';
+    deliveryFields.style.display = delivery ? 'block' : 'none';
+    if (deliveryLateRow) {
+      deliveryLateRow.style.display = (delivery && !deliveryOpen) ? 'block' : 'none';
     }
     updateTotal();
   }

@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
-Sitemap: http://127.0.0.1:8000/sitemap.xml
+Disallow: /admin/
+Disallow: /admin-dashboard/
+Disallow: /admin-productos/
+
+Sitemap: {{ domain }}/sitemap.xml

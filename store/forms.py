@@ -118,6 +118,10 @@ class DeliveryForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": 2, "placeholder": "Instrucciones adicionales (opcional)"}),
         label="Indicaciones",
     )
+    accept_delivery_late = forms.BooleanField(
+        required=False,
+        label="Entiendo y acepto que el envío se realizará al día siguiente, en el horario de domicilio.",
+    )
 
     def clean(self):
         cleaned_data = super().clean()

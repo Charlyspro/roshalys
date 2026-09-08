@@ -10,18 +10,27 @@
   <div class="product-grid">
     {% for product in page_obj %}
       <article class="product-card">
-        <img src="{{ product.get_main_image }}" alt="{{ product.name }}" loading="lazy" />
+        <div class="card-media">
+          <img src="{{ product.get_main_image }}" alt="{{ product.name }}" loading="lazy" />
+          {% if not product.available %}<span class="sold-out-badge">Agotado</span>{% endif %}
+        </div>
         <div class="card-body">
           <span class="category-tag">{{ product.category.name }}</span>
           <h3>{{ product.name }}</h3>
           <p class="price">${{ product.price }}</p>
           <div class="card-actions">
+            {% if product.available %}
             <form method="post" action="{% url 'store:add_to_cart' product.id %}" style="flex: 1;">
               {% csrf_token %}
               <button type="submit" class="btn-icon" title="Agregar al carrito" aria-label="Agregar al carrito">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
               </button>
             </form>
+            {% else %}
+            <span class="btn-icon is-disabled" title="Agotado" aria-label="Agotado">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            </span>
+            {% endif %}
             <a class="secondary-btn" href="{% url 'store:product_detail' product.slug %}">Ver</a>
           </div>
         </div>

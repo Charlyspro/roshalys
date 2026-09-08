@@ -16,6 +16,7 @@ env:
   STORE_CURRENCY: USD
   ADMIN_EMAIL: admin@roshalys.local
   WHATSAPP_NUMBERS: 5354279546,5355502491
+  DELIVERY_MIN_TOTAL: '1000'
   PRIMARY_COLOR: '#14213D'
   SECONDARY_COLOR: '#2563EB'
   BACKGROUND_COLOR: '#F8FAFC'
@@ -32,7 +33,8 @@ jobs:
   trigger: post-deployment
   action:
     execute:
-      command: after_deploy
+      command: python manage.py migrate --noinput
+      timeout: 300s
 annotations:
   anybuild.run/config:
     asgi_application: roshalys.asgi:application

@@ -1,11 +1,11 @@
 import uuid
 from pathlib import Path
 
+import datetime
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils.text import slugify
 
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
@@ -177,24 +177,6 @@ class DeliveryZone(models.Model):
         return f"{self.name} (${self.cost})"
 
 
-class ProductDeliveryConfig(models.Model):
-    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name="delivery_config")
-    allow_delivery = models.BooleanField(default=True, help_text="¿Permitir domicilio para este producto?")
-    min_quantity_for_delivery = models.PositiveIntegerField(
-        default=1,
-        help_text="Cantidad mínima de productos para permitir domicilio"
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Configuración de entrega"
-        verbose_name_plural = "Configuraciones de entrega"
-
-    def __str__(self):
-        return f"Config: {self.product.name}"
-
-
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
@@ -219,7 +201,112 @@ class OrderItem(models.Model):
         return self.price * self.quantity
 
 
-@receiver(post_save, sender=Product)
-def ensure_product_delivery_config(sender, instance, created, **kwargs):
-    if created:
-        ProductDeliveryConfig.objects.get_or_create(product=instance)
+class StoreConfig(models.Model):
+    force_open = models.BooleanField(
+        default=False,
+        help_text="Marca para forzar la tienda abierta (emergencias, ferias, etc.)",
+        verbose_name="Forzar tienda abierta",
+    )
+    delivery_from = models.TimeField(
+        default=datetime.time(9, 0),
+        help_text="Hora de inicio de los envíos a domicilio (fija cada día)",
+        verbose_name="Domicilios: desde",
+    )
+    delivery_to = models.TimeField(
+        default=datetime.time(18, 0),
+        help_text="Hora de fin de los envíos a domicilio (fija cada día)",
+        verbose_name="Domicilios: hasta",
+    )
+
+    class Meta:
+        verbose_name = "Configuración de la tienda"
+        verbose_name_plural = "Configuración de la tienda"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1, defaults={"force_open": False})
+        return obj
+
+    def __str__(self):
+        return "Configuración de la tienda"
+
+
+class StoreHours(models.Model):
+    DAY_CHOICES = [
+        (0, "Lunes"),
+        (1, "Martes"),
+        (2, "Miércoles"),
+        (3, "Jueves"),
+        (4, "Viernes"),
+        (5, "Sábado"),
+        (6, "Domingo"),
+    ]
+
+    day = models.PositiveSmallIntegerField(choices=DAY_CHOICES, unique=True, verbose_name="Día")
+    open_time = models.TimeField(null=True, blank=True, verbose_name="Apertura")
+    close_time = models.TimeField(null=True, blank=True, verbose_name="Cierre")
+    is_closed = models.BooleanField(default=False, verbose_name="Cerrado")
+
+    class Meta:
+        ordering = ["day"]
+        verbose_name = "Horario"
+        verbose_name_plural = "Horarios"
+
+    def __str__(self):
+        if self.is_closed or self.open_time is None:
+            return f"{self.get_day_display()} — Cerrado"
+        return f"{self.get_day_display()} · {self.open_time:%H:%M}–{self.close_time:%H:%M}"
+
+
+class DailyStats(models.Model):
+    date = models.DateField(unique=True, verbose_name="Fecha")
+    views = models.PositiveIntegerField(default=0, verbose_name="Visitas")
+    visitors = models.PositiveIntegerField(default=0, verbose_name="Visitantes únicos")
+    seen_keys = models.TextField(
+        default="[]",
+        help_text="Identificadores anónimos de visitantes ya contados en el día (JSON).",
+        verbose_name="Visitantes contados",
+    )
+
+    class Meta:
+        ordering = ["-date"]
+        verbose_name = "Estadística de visitas"
+        verbose_name_plural = "Estadísticas de visitas"
+
+    def __str__(self):
+        return self.date.isoformat()
+
+
+class VisitorCountry(models.Model):
+    ip_hash = models.CharField(max_length=64, unique=True, verbose_name="Visitante (hash)")
+    country_code = models.CharField(max_length=2, blank=True, default="", verbose_name="País (ISO)")
+    resolved_at = models.DateTimeField(auto_now=True, verbose_name="Detectado")
+
+    class Meta:
+        verbose_name = "País del visitante"
+        verbose_name_plural = "Países de visitantes"
+
+    def __str__(self):
+        return self.country_code or "desconocido"
+
+
+class Feedback(models.Model):
+    RATING_CHOICES = [
+        (1, "Me gusta"),
+        (-1, "No me gusta"),
+    ]
+    rating = models.SmallIntegerField(choices=RATING_CHOICES, verbose_name="Voto")
+    country_code = models.CharField(max_length=2, blank=True, default="", verbose_name="País (ISO)")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha")
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Opinión del visitante"
+        verbose_name_plural = "Opiniones de visitantes"
+
+    def __str__(self):
+        return self.get_rating_display()

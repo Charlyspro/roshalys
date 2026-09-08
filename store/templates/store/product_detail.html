@@ -78,7 +78,10 @@
       <div class="product-grid">
         {% for r in related %}
           <article class="product-card">
-            <img src="{{ r.get_main_image }}" alt="{{ r.name }}" loading="lazy" />
+            <div class="card-media">
+              <img src="{{ r.get_main_image }}" alt="{{ r.name }}" loading="lazy" />
+              {% if not r.available %}<span class="sold-out-badge">Agotado</span>{% endif %}
+            </div>
             <div class="card-body">
               <span class="category-tag">{{ r.category.name }}</span>
               <h3>{{ r.name }}</h3>

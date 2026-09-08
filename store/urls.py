@@ -4,10 +4,13 @@ from . import views
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("cerrado/", views.closed_page, name="closed"),
     path("categoria/<slug:slug>/", views.category_products, name="category_products"),
     path("producto/<slug:slug>/", views.product_detail, name="product_detail"),
     path("buscar/", views.search_products, name="search_products"),
     path("asistente/", views.ollama_chat, name="ollama_chat"),
+    path("feedback/", views.feedback_view, name="feedback"),
+    path("visitors-countries/", views.visitors_countries_view, name="visitors_countries"),
     path("cart/", views.cart_view, name="cart"),
     path("cart/add/<int:product_id>/", views.add_to_cart, name="add_to_cart"),
     path("cart/update/<int:product_id>/", views.update_cart, name="update_cart"),

@@ -2,7 +2,8 @@
 
 > **Punto de entrada para futuros agentes.** Este documento describe el estado ACTUAL de la tienda.
 > Complementa y actualiza a `README.md` (setup/instalación) y `REDESIGN_SUMMARY.md` (histórico del rediseño,
-> que ya NO refleja los colores actuales). Para el detalle del envío por producto ver `DELIVERY_CONFIG.md`.
+> que ya NO refleja los colores actuales). El envío a domicilio depende del subtotal mínimo `DELIVERY_MIN_TOTAL` (por defecto `$1000`)
+> y de una **ventana de horario de domicilio** (por defecto 09:00–18:00, configurable en `StoreConfig`).
 
 ---
 
@@ -30,7 +31,7 @@ Dos audiencias:
 ```
 roshalys/            # Config principal de Django (wsgi.py expone `app` + `application`)
 store/               # App principal: models, views, forms, urls, templates, static
-  models.py          # Category, Product, ProductImage, Order, OrderItem, DeliveryZone, ProductDeliveryConfig
+  models.py          # Category, Product, ProductImage, Order, OrderItem, DeliveryZone
   forms.py           # DeliveryForm, CustomerProfileForm, ProductAdminForm, ProductImageAdminForm
   views.py           # home, category/product/search, cart, checkout (whatsapp), cuentas, admin CRUD
   context_processors.py  # expone whatsapp_number, whatsapp_link, store_name, colores a todos los templates
@@ -67,7 +68,6 @@ app.yaml             # Config de despliegue Wasmer
 - **Product** (`name`, `slug`, `price`, `stock`, `is_active`, `category`, `description`, imagen principal + `ProductImage`)
 - **Order / OrderItem** — pedido: cliente, dirección, notas, `delivery_cost`, `delivery_zone`, `checkout_token`, `status`
 - **DeliveryZone** (`name`, `cost`, `is_active`) — zonas de entrega y su costo.
-- **ProductDeliveryConfig** — restricciones de envío por producto (deshabilitar envío, cantidad mínima). Ver `DELIVERY_CONFIG.md`.
 
 ---
 
@@ -141,6 +141,20 @@ wasmer deploy --build-remote
 - **Centrado / uniformidad:** la barra "Compra por categoría" quedó **centrada** y con ajuste de línea (`justify-content: center` + `flex-wrap`); la **barra inferior móvil** quedó con reparto uniforme (`space-evenly`, `width:100%`, centrada).
 - **Menú de categorías:** dropdown con puente `::after` + `:focus-within` para que no desaparezca al mover el cursor.
 - **Botón flotante de WhatsApp** "Escríbenos" y corrección de enlaces `wa.me/` vacíos en footer y barra móvil.
+- **Horario Abierto/Cerrado:** mientras la tienda está cerrada, **todo el sitio público** (salvo `/admin/`, estáticos y la propia `/cerrado/`) redirige a una **pantalla "Estamos cerrados"** con cuenta regresiva en vivo y botón de WhatsApp. Configurado desde el admin:
+  - `store/models.py` → `StoreHours` (horario por día, editable en bloque) y `StoreConfig` (1 fila, con **`force_open`** para emergencias).
+  - `store/hours.py` (lógica `is_open`, `seconds_until_open`, `next_open_info`, `schedule_summary`), `store/middleware.py` (`StoreClosedMiddleware`) y `store/templates/store/closed.html`.
+  - Zona horaria del negocio: `BUSINESS_TIMEZONE` (env), default `America/Havana`. Default de horario: Lun–Vie 9:00–18:00 · Sáb 9:00–13:00 · Dom cerrado (ajustar en admin). Migraciones **0010**.
+- **Horario de domicilio (regla fija):** los **domicilios** solo se admiten dentro de una ventana de `StoreConfig.delivery_from`/`delivery_to` (default **09:00–18:00**, configurable en admin). Regla elegida por el cliente (**Opción 3**):
+  - El checkout muestra "Domicilios: de 09:00 a 18:00" en la tarjeta de entrega.
+  - Fuera de esa ventana **NO se bloquea el pedido**: se muestra un aviso ("tu pedido se entregará al día siguiente") y se exige marcar una **casilla de aceptación**; si no se marca, se rechaza con mensaje de error.
+  - Al aceptar, el pedido se crea y se añade la nota "Entrega fuera del horario de domicilio: se entregará al día siguiente.".
+  - La recogida en tienda (`pickup`) nunca se bloquea. `force_open` en `StoreConfig` también activa la ventana de domicilio.
+  - Implementación: `store/hours.py` → `delivery_window()`, `store/views.py` (validación POST + contexto), `store/templates/store/checkout_delivery.html` (fila `#delivery-late-row` + JS), `store/forms.py` (`accept_delivery_late`). Migración **0012**.
+- **Migraciones en producción:** en Wasmer, `migrate` dentro del build toca una BD efímera y el job de deploy no es fiable; las migraciones a la MySQL persistente se aplican con `_migrate_on_boot()` en `roshalys/wsgi.py` al arrancar la app (guardado contra `test`/`migrate`/`makemigrations` en `sys.argv`). `app.yaml` también tiene un job `after_deploy` con `python manage.py migrate --noinput`.
+- **Contador de visitas (privado):** cuenta **visitas** (cada página pública 200) y **visitantes únicos por día** (hash IP+UA, sin guardar IPs). No cuenta admin, estáticos ni usuarios staff. Se ve en `/admin-dashboard/` ("Visitas hoy", "Visitantes únicos hoy", totales) y como modelo `DailyStats` en el admin (solo lectura). Implementación: `store/visits.py`, `VisitCounterMiddleware`, migración **0013**.
+- **Acceso admin:** usuario `admin`; la contraseña la fija el secret Wasmer `ADMIN_BOOTSTRAP_PASSWORD` en el arranque (migración **0011**; sin secret no se crea/actualiza). Ver `CONTINUAR.md` §10.
+- **Widget de países + me gusta (portada):** al **terminar el listado de productos** de la portada hay un panel en vivo con las **banderas + número acumulado por país** (máx. 6, ordenados por cantidad): al pulsar **👍 Me gusta / 👎 No me gusta** aparece la bandera del país de la persona y, si ya existe, **el número se suma**. El país se detecta **desde el navegador** (`https://ipwho.is/` por CORS, sin clave; en Wasmer el servidor NO ve la IP real del cliente) y se envía con el voto a `POST /feedback/`; refresco automático cada 30s vía `GET /visitors-countries/`. País guardado en `Feedback.country_code`, cache `VisitorCountry` como fallback. Banderas por CDN `flagcdn.com`. Los totales de opiniones (👍/👎) solo se ven en `/admin-dashboard/`. Migraciones **0014** y **0015**.
 
 ---
 
@@ -154,4 +168,4 @@ wasmer deploy --build-remote
 
 ---
 
-**Estado:** ACTUALIZADO · Deploy más reciente OK en https://roshalys.wasmer.app
+**Estado:** ACTUALIZADO · Deploy más reciente OK en https://roshalys.wasmer.app · Tests **86/86 OK**

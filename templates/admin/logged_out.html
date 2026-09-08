@@ -1,0 +1,20 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block bodyclass %}login{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block branding %}{% endblock %}
+
+{% block content %}
+<div class="admin-auth-shell">
+  <div class="admin-auth-card">
+    <div class="admin-auth-brand">ROSHALYS</div>
+    <h1>Sesión cerrada</h1>
+    <p class="admin-auth-sub">Has cerrado sesión correctamente del panel de administración.</p>
+    <div class="admin-auth-actions">
+      <a href="{% url 'admin:index' %}" class="admin-link admin-link-primary admin-link-block">Iniciar sesión de nuevo</a>
+      <a href="/" class="admin-link admin-link-block">Volver a la tienda</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>{{ store_name|default:'ROSHALYS' }} — Estamos cerrados</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="icon" href="{% static 'images/favicon.png' %}" type="image/png" />
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+  <style>
+    .closed-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--background);
+      padding: 2rem 1rem;
+    }
+    .closed-card {
+      max-width: 560px;
+      width: 100%;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 2.75rem 2rem;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    .closed-logo {
+      width: 92px;
+      height: 92px;
+      border-radius: var(--radius-md);
+      object-fit: cover;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-md);
+    }
+    .closed-brand {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    .closed-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--danger);
+      color: #ffffff;
+      margin-bottom: 1rem;
+    }
+    .closed-title {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--primary);
+      margin: 0 0 0.6rem;
+    }
+    .closed-subtitle {
+      color: var(--text-secondary);
+      margin: 0 0 1.5rem;
+      line-height: 1.5;
+    }
+    .closed-schedule {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 0.95rem;
+      background: var(--surface-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.9rem 1rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .closed-countdown {
+      background: var(--primary);
+      border-radius: var(--radius-md);
+      padding: 1.5rem 1.25rem;
+      margin-bottom: 1.75rem;
+    }
+    .closed-countdown-label {
+      display: block;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    .countdown-time {
+      display: block;
+      font-size: 2.25rem;
+      font-weight: 900;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
+    }
+    .countdown-time-small {
+      display: block;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .closed-note {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 1.5rem;
+      line-height: 1.5;
+    }
+    .closed-note a {
+      color: var(--primary-light);
+    }
+    body[data-theme="dark"] .closed-countdown {
+      background: var(--surface-secondary);
+    }
+  </style>
+</head>
+<body>
+  <main class="closed-screen">
+    <div class="closed-card">
+      <img class="closed-logo" src="{% static 'images/logo.png' %}" alt="{{ store_logo|default:'ROSHALYS' }}" />
+      <p class="closed-brand">{{ store_logo|default:'ROSHALYS' }}</p>
+      <div class="closed-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M6 6l12 12"/><path d="M6 18L18 6"/>
+        </svg>
+      </div>
+      <h1 class="closed-title">Estamos cerrados</h1>
+      <p class="closed-subtitle">Gracias por visitarnos. En este momento no podemos atender pedidos, pero volveremos muy pronto.</p>
+
+      {% if next_open.exists %}
+        <p class="closed-schedule">Abrimos de nuevo <strong>{{ next_open.label }}</strong>.<br />Horario: {{ schedule_summary }}</p>
+      {% else %}
+        <p class="closed-schedule">Horario: {{ schedule_summary }}</p>
+      {% endif %}
+
+      {% if seconds_until_open is not None %}
+        <div class="closed-countdown">
+          <span class="closed-countdown-label">Abrimos en</span>
+          {% if seconds_until_open %}
+            <span class="countdown-time" id="countdown" data-seconds="{{ seconds_until_open }}">--h --m --s</span>
+          {% else %}
+            <span class="countdown-time-small">¡Ya estamos abiertos!</span>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {% if whatsapp_link %}
+        <a class="primary-btn" href="{{ whatsapp_link }}" target="_blank" rel="noreferrer">
+          Escríbenos por WhatsApp
+        </a>
+      {% endif %}
+
+      <p class="closed-note">¿Necesitas atención urgente? Escríbenos por WhatsApp y contestaremos apenas abramos.</p>
+      <p class="closed-note"><a href="{% url 'admin:login' %}" style="color: inherit; opacity: .55;">Acceso admin</a></p>
+    </div>
+  </main>
+  <script>
+    (function () {
+      var el = document.getElementById('countdown');
+      if (!el) return;
+      var total = parseInt(el.getAttribute('data-seconds'), 10);
+      if (!Number.isFinite(total) || total <= 0) {
+        el.textContent = '¡Ya estamos abiertos!';
+        return;
+      }
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      function render() {
+        var hours = Math.floor(total / 3600);
+        var minutes = Math.floor((total % 3600) / 60);
+        var seconds = total % 60;
+        if (hours > 0) {
+          el.textContent = hours + 'h ' + pad(minutes) + 'm ' + pad(seconds) + 's';
+        } else if (minutes > 0) {
+          el.textContent = minutes + 'm ' + pad(seconds) + 's';
+        } else {
+          el.textContent = seconds + 's';
+        }
+        total = total > 0 ? total - 1 : 0;
+      }
+      render();
+      setInterval(render, 1000);
+    })();
+  </script>
+</body>
+</html>

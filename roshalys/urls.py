@@ -5,13 +5,29 @@ from django.shortcuts import render
 from django.urls import include, path, re_path
 from django.views.static import serve
 
+from store.models import Category, Product
+
 
 def robots_txt(request):
-    return render(request, "robots.txt", content_type="text/plain")
+    domain = request.build_absolute_uri("/").rstrip("/")
+    return render(request, "robots.txt", {"domain": domain}, content_type="text/plain")
 
 
 def sitemap_xml(request):
-    return render(request, "sitemap.xml", content_type="application/xml")
+    domain = request.build_absolute_uri("/").rstrip("/")
+    products = Product.objects.filter(is_active=True)
+    categories = Category.objects.filter(is_active=True)
+    return render(
+        request,
+        "sitemap.xml",
+        {
+            "domain": domain,
+            "products": products,
+            "categories": categories,
+            "pages": ["", "buscar/", "cart/"],
+        },
+        content_type="application/xml",
+    )
 
 
 urlpatterns = [

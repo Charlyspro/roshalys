@@ -20,13 +20,24 @@
       <span class="admin-brand-text">ROSHALYS</span>
     </a>
   </div>
-  <div class="admin-toolbar">
-    <a href="/" class="admin-link admin-link-primary">Ver tienda</a>
-    {% if user.is_authenticated %}
-      <a href="{% url 'admin:logout' %}" class="admin-link admin-link-muted">Cerrar sesión</a>
-    {% endif %}
-  </div>
 </div>
+{% endblock %}
+
+{% block usertools %}
+{% if has_permission %}
+<div id="user-tools" class="admin-toolbar">
+  <a href="/" class="admin-link admin-link-primary">Ver tienda</a>
+  {% if user.has_usable_password %}
+  <a href="{% url 'admin:password_change' %}" class="admin-link">Cambiar contraseña</a>
+  {% endif %}
+  {% if user.is_active and user.is_staff %}
+  <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="admin-link">Cerrar sesión</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
 {% endblock %}
 
 {% block nav-global %}{% endblock %}

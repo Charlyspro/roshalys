@@ -121,32 +121,7 @@ cp db.sqlite3 db.sqlite3.backup
 - Sin pagos online.
 - El flujo final es carrito + WhatsApp.
 - El administrador puede gestionar productos y categorías desde Django Admin.
-
-## Configuración de Entregas por Producto
-
-ROSHALYS incluye **ProductDeliveryConfig** para configurar restricciones de envío a nivel de producto:
-
-- Deshabilitar envío a domicilio (solo recoger en local)
-- Establecer cantidad mínima para envío a domicilio
-- Validación automática en checkout
-
-**Documentación completa**: Ver [DELIVERY_CONFIG.md](DELIVERY_CONFIG.md)
-
-### Ejemplo rápido
-
-```python
-# Productos que NO se pueden enviar a domicilio
-product = Product.objects.get(id=1)
-config = product.delivery_config
-config.allow_delivery = False
-config.save()
-
-# Productos con cantidad mínima para envío
-product = Product.objects.get(id=2)
-config = product.delivery_config
-config.min_quantity_for_delivery = 10  # Mínimo 10 unidades
-config.save()
-```
+- El envío a domicilio está disponible para cualquier pedido cuyo subtotal alcance el mínimo configurado (`DELIVERY_MIN_TOTAL`, por defecto `$1000`), sin restricciones por producto.
 
 ## Auditoría y Logging
 

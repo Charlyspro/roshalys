@@ -11,6 +11,7 @@
       <div class="carousel-slide{% if forloop.first %} active{% endif %}">
         <div class="carousel-media">
           <img src="{{ product.get_main_image }}" alt="{{ product.name }}" loading="lazy" />
+          {% if not product.available %}<span class="sold-out-badge">Agotado</span>{% endif %}
         </div>
         <div class="carousel-info">
           <span class="eyebrow">⭐ Lo más vendido</span>
@@ -18,10 +19,14 @@
           <p>{{ product.description|truncatechars:120 }}</p>
           <p class="price">${{ product.price }}</p>
           <div class="carousel-actions">
-            <form method="post" action="{% url 'store:add_to_cart' product.id %}" style="flex: 1;">
-              {% csrf_token %}
-              <button type="submit" class="cta-btn">Agregar al carrito</button>
-            </form>
+            {% if product.available %}
+              <form method="post" action="{% url 'store:add_to_cart' product.id %}" style="flex: 1;">
+                {% csrf_token %}
+                <button type="submit" class="cta-btn">Agregar al carrito</button>
+              </form>
+            {% else %}
+              <span class="cta-btn is-disabled" style="flex: 1;">Agotado</span>
+            {% endif %}
             <a class="secondary-btn" href="{% url 'store:product_detail' product.slug %}">Ver</a>
           </div>
         </div>
@@ -45,45 +50,45 @@
   <div class="section-header">
     <h2>Compra por categoría</h2>
   </div>
-  <div class="categories-bar">
-    <div class="categories-scroll">
-      <a class="cat-chip active" href="{% url 'store:home' %}">
-        <span class="cat-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-        </span>
-        <span>Todos</span>
-      </a>
-      {% for category in categories %}
-        {% if category.is_active %}
-          <a class="cat-chip" href="{% url 'store:category_products' category.slug %}">
-            <span class="cat-icon" aria-hidden="true">
-              {% with n=category.name|lower %}
-              {% if "accesor" in n %}
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6"/><path d="M2 16h20"/><path d="M6 16v4h12v-4"/><path d="M8 7h8"/></svg>
-              {% elif "bebida" in n or "caf" in n or "cafe" in n %}
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
-              {% elif "condimento" in n or "cocina" in n or "cocinar" in n %}
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
-              {% elif "galleta" in n or "dulce" in n %}
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a4 4 0 0 0-4 4 4 4 0 0 0-4 4c0 1.7 1 3 2.5 3.5A4 4 0 0 0 9 20a4 4 0 0 0 8 0 4 4 0 0 0 2.5-3.5A4 4 0 0 0 20 10a4 4 0 0 0-4-4A4 4 0 0 0 12 2Z"/></svg>
-              {% elif "higiene" in n or "cuidado" in n or "personal" in n %}
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c3 0 6-2 6-6V6a2 2 0 0 0-2-2c-1 0-2 .5-2 1"/><path d="M12 21c-3 0-6-2-6-6V6a2 2 0 0 1 2-2c1 0 2 .5 2 1"/><path d="M12 21V9"/></svg>
-              {% elif "pc" in n or "electronica" in n or "electrónica" in n or "tecn" in n or "robot" in n %}
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-              {% elif "reposter" in n or "pastel" in n or "torta" in n %}
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 22a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3V3a1 1 0 0 0-2 0v3H9V3a1 1 0 0 0-2 0v3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M3 14h18"/><path d="M6 10v4M10 10v4M14 10v4M18 10v4"/></svg>
-              {% elif "ropa" in n or "calzado" in n or "zapat" in n or "vestir" in n %}
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 4 15 6.5 12 3 9 6.5 3.6 4 2 12l4 3v6h6v-3h4v3h6v-6l4-3Z"/><path d="M8 21v-4M16 21v-4"/></svg>
-              {% else %}
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6-5 6 5"/><path d="M6 20h12"/><path d="M8 20v-7a4 4 0 0 1 8 0v7"/></svg>
-              {% endif %}
-              {% endwith %}
-            </span>
-            <span>{{ category.name }}</span>
-          </a>
-        {% endif %}
-      {% endfor %}
-    </div>
+  <div class="categories-grid">
+    <a class="cat-card" href="{% url 'store:home' %}">
+      <span class="cat-card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      </span>
+      <span class="cat-card-name">Ver todos</span>
+      <span class="cat-card-count">{{ all_products|length }} productos</span>
+    </a>
+    {% for category in categories %}
+      {% if category.is_active %}
+        <a class="cat-card" href="{% url 'store:category_products' category.slug %}">
+          <span class="cat-card-icon" aria-hidden="true">
+            {% with n=category.name|lower %}
+            {% if "accesor" in n %}
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6"/><path d="M2 16h20"/><path d="M6 16v4h12v-4"/><path d="M8 7h8"/></svg>
+            {% elif "bebida" in n or "caf" in n or "cafe" in n %}
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+            {% elif "condimento" in n or "cocina" in n or "cocinar" in n %}
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+            {% elif "galleta" in n or "dulce" in n %}
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a4 4 0 0 0-4 4 4 4 0 0 0-4 4c0 1.7 1 3 2.5 3.5A4 4 0 0 0 9 20a4 4 0 0 0 8 0 4 4 0 0 0 2.5-3.5A4 4 0 0 0 20 10a4 4 0 0 0-4-4A4 4 0 0 0 12 2Z"/></svg>
+            {% elif "higiene" in n or "cuidado" in n or "personal" in n %}
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c3 0 6-2 6-6V6a2 2 0 0 0-2-2c-1 0-2 .5-2 1"/><path d="M12 21c-3 0-6-2-6-6V6a2 2 0 0 1 2-2c1 0 2 .5 2 1"/><path d="M12 21V9"/></svg>
+            {% elif "pc" in n or "electronica" in n or "electrónica" in n or "tecn" in n or "robot" in n %}
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            {% elif "reposter" in n or "pastel" in n or "torta" in n %}
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 22a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3V3a1 1 0 0 0-2 0v3H9V3a1 1 0 0 0-2 0v3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M3 14h18"/><path d="M6 10v4M10 10v4M14 10v4M18 10v4"/></svg>
+            {% elif "ropa" in n or "calzado" in n or "zapat" in n or "vestir" in n %}
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 4 15 6.5 12 3 9 6.5 3.6 4 2 12l4 3v6h6v-3h4v3h6v-6l4-3Z"/><path d="M8 21v-4M16 21v-4"/></svg>
+            {% else %}
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6-5 6 5"/><path d="M6 20h12"/><path d="M8 20v-7a4 4 0 0 1 8 0v7"/></svg>
+            {% endif %}
+            {% endwith %}
+          </span>
+          <span class="cat-card-name">{{ category.name }}</span>
+          <span class="cat-card-count">{{ category.product_count }} producto{% if category.product_count != 1 %}s{% endif %}</span>
+        </a>
+      {% endif %}
+    {% endfor %}
   </div>
 </section>
 
@@ -97,18 +102,27 @@
     <div class="product-grid">
       {% for product in featured_products|slice:":4" %}
         <article class="product-card">
-          <img src="{{ product.get_main_image }}" alt="{{ product.name }}" loading="lazy" />
+          <div class="card-media">
+            <img src="{{ product.get_main_image }}" alt="{{ product.name }}" loading="lazy" />
+            {% if not product.available %}<span class="sold-out-badge">Agotado</span>{% endif %}
+          </div>
           <div class="card-body">
             <span class="category-tag">{{ product.category.name }}</span>
             <h3>{{ product.name }}</h3>
             <p class="price">${{ product.price }}</p>
             <div class="card-actions">
+              {% if product.available %}
               <form method="post" action="{% url 'store:add_to_cart' product.id %}" style="flex: 1;">
                 {% csrf_token %}
                 <button type="submit" class="btn-icon" title="Agregar al carrito" aria-label="Agregar al carrito">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                 </button>
               </form>
+              {% else %}
+              <span class="btn-icon is-disabled" title="Agotado" aria-label="Agotado">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              </span>
+              {% endif %}
               <a class="secondary-btn" href="{% url 'store:product_detail' product.slug %}">Ver</a>
             </div>
           </div>
@@ -124,45 +138,69 @@
     <h2>Todos nuestros productos</h2>
   </div>
   <div class="product-grid">
-    {% for product in page_obj %}
+    {% for product in all_products %}
       <article class="product-card">
-        <img src="{{ product.get_main_image }}" alt="{{ product.name }}" loading="lazy" />
-        <div class="card-body">
-          <span class="category-tag">{{ product.category.name }}</span>
-          <h3>{{ product.name }}</h3>
-          <p class="price">${{ product.price }}</p>
-          <div class="card-actions">
-            <form method="post" action="{% url 'store:add_to_cart' product.id %}" style="flex: 1;">
-              {% csrf_token %}
-              <button type="submit" class="btn-icon" title="Agregar al carrito" aria-label="Agregar al carrito">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-              </button>
-            </form>
-            <a class="secondary-btn" href="{% url 'store:product_detail' product.slug %}">Ver</a>
+          <div class="card-media">
+            <img src="{{ product.get_main_image }}" alt="{{ product.name }}" loading="lazy" />
+            {% if not product.available %}<span class="sold-out-badge">Agotado</span>{% endif %}
           </div>
-        </div>
-      </article>
+          <div class="card-body">
+            <span class="category-tag">{{ product.category.name }}</span>
+            <h3>{{ product.name }}</h3>
+            <p class="price">${{ product.price }}</p>
+            <div class="card-actions">
+              {% if product.available %}
+              <form method="post" action="{% url 'store:add_to_cart' product.id %}" style="flex: 1;">
+                {% csrf_token %}
+                <button type="submit" class="btn-icon" title="Agregar al carrito" aria-label="Agregar al carrito">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                </button>
+              </form>
+              {% else %}
+              <span class="btn-icon is-disabled" title="Agotado" aria-label="Agotado">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              </span>
+              {% endif %}
+              <a class="secondary-btn" href="{% url 'store:product_detail' product.slug %}">Ver</a>
+            </div>
+          </div>
+        </article>
     {% empty %}
       <p style="grid-column: 1 / -1; text-align: center; color: var(--text-2);">No hay productos disponibles en este momento.</p>
     {% endfor %}
   </div>
+</section>
 
-  <!-- PAGINATION -->
-  {% if is_paginated %}
-    <nav class="pagination">
-      {% if page_obj.has_previous %}
-        <a href="?page=1">« Primera</a>
-        <a href="?page={{ page_obj.previous_page_number }}">← Anterior</a>
-      {% endif %}
-
-      <span class="page-info">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-
-      {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}">Siguiente →</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}">Última »</a>
-      {% endif %}
-    </nav>
+<!-- PANEL DE VISITAS Y OPINIÓN (al terminar los productos) -->
+<section class="visits-panel">
+  <h2 class="visits-title">Nos visitan de todo el mundo</h2>
+  {% if visitor_countries %}
+  <div class="visits-flags" id="visits-flags">
+    {% for country in visitor_countries %}
+      <div class="visits-flag" data-country="{{ country.code }}" title="{{ country.name }}">
+        <span class="visits-flag-img">
+          <img src="https://flagcdn.com/w40/{{ country.code|lower }}.png"
+               srcset="https://flagcdn.com/w80/{{ country.code|lower }}.png 2x"
+               alt="{{ country.name }}" loading="lazy" width="40" height="26">
+          <span class="visits-flag-count" data-count="{{ country.count }}">{{ country.count }}</span>
+        </span>
+        <span class="visits-flag-name">{{ country.name }}</span>
+      </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="visits-empty" id="visits-empty">Todavía no hay banderas... ¡da tu opinión y aparece la tuya!</p>
   {% endif %}
+
+  <div class="visits-feedback">
+    <span class="visits-question">¿Te gusta lo que viste?</span>
+    <form id="feedback-form" class="visits-buttons">
+      {% csrf_token %}
+      <button type="submit" name="rating" value="like" class="visits-btn visits-btn-like">👍 Me gusta</button>
+      <button type="submit" name="rating" value="dislike" class="visits-btn visits-btn-dislike">👎 No me gusta</button>
+    </form>
+    <p id="feedback-thanks" class="visits-thanks" hidden>¡Gracias por tu opinión!</p>
+  </div>
 </section>
 
 {% endblock %}
@@ -207,6 +245,145 @@
   document.getElementById('carousel-next').addEventListener('click', function () { goTo(current + 1); restart(); });
 
   restart();
+})();
+</script>
+
+<!-- PANEL DE VISITAS Y OPINIÓN -->
+<section class="visits-panel">
+  <h2 class="visits-title">Nos visitan de todo el mundo</h2>
+  {% if visitor_countries %}
+  <div class="visits-flags">
+    {% for country in visitor_countries %}
+      <div class="visits-flag" title="{{ country.name }} ({{ country.count }} visitas hoy)">
+        <img src="https://flagcdn.com/w40/{{ country.code|lower }}.png"
+             srcset="https://flagcdn.com/w80/{{ country.code|lower }}.png 2x"
+             alt="{{ country.name }}" loading="lazy" width="40" height="26">
+        <span>{{ country.name }}</span>
+      </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="visits-empty">Hoy empezamos a reunir banderitas... ¡tú puedes ser el primero!</p>
+  {% endif %}
+
+  <div class="visits-feedback">
+    <span class="visits-question">¿Te gusta lo que viste?</span>
+    <form id="feedback-form" class="visits-buttons">
+      {% csrf_token %}
+      <button type="submit" name="rating" value="like" class="visits-btn visits-btn-like">👍 Me gusta</button>
+      <button type="submit" name="rating" value="dislike" class="visits-btn visits-btn-dislike">👎 No me gusta</button>
+    </form>
+    <p id="feedback-thanks" class="visits-thanks" hidden>¡Gracias por tu opinión!</p>
+  </div>
+</section>
+
+<script>
+(function () {
+  var form = document.getElementById('feedback-form');
+  var flagsWrap = document.getElementById('visits-flags');
+  var emptyEl = document.getElementById('visits-empty');
+  var thanks = document.getElementById('feedback-thanks');
+  if (!form || !thanks) return;
+  var token = form.querySelector('[name=csrfmiddlewaretoken]');
+  var POLL_MS = 30000;
+
+  function flagItem(country) {
+    var code = String(country.code).toLowerCase();
+    var div = document.createElement('div');
+    div.className = 'visits-flag';
+    div.setAttribute('data-country', country.code);
+    div.setAttribute('title', country.name);
+    var imgWrap = document.createElement('span');
+    imgWrap.className = 'visits-flag-img';
+    var img = document.createElement('img');
+    img.src = 'https://flagcdn.com/w40/' + code + '.png';
+    img.srcset = 'https://flagcdn.com/w80/' + code + '.png 2x';
+    img.alt = country.name;
+    img.loading = 'lazy';
+    img.width = 40;
+    img.height = 26;
+    var count = document.createElement('span');
+    count.className = 'visits-flag-count';
+    count.setAttribute('data-count', country.count);
+    count.textContent = country.count;
+    imgWrap.appendChild(img);
+    imgWrap.appendChild(count);
+    var name = document.createElement('span');
+    name.className = 'visits-flag-name';
+    name.textContent = country.name;
+    div.appendChild(imgWrap);
+    div.appendChild(name);
+    return div;
+  }
+
+  function renderFlags(list) {
+    if (!list || !list.length) {
+      if (flagsWrap) flagsWrap.remove();
+      var container = document.querySelector('.visits-flags') || flagsWrap;
+      if (emptyEl) {
+        emptyEl.hidden = false;
+      } else if (flagsWrap) {
+        flagsWrap.parentNode.insertBefore(emptyEl || (function () {
+          emptyEl = document.createElement('p');
+          emptyEl.className = 'visits-empty';
+          emptyEl.id = 'visits-empty';
+          emptyEl.textContent = 'Todavía no hay banderas... ¡da tu opinión y aparece la tuya!';
+          return emptyEl;
+        })(), flagsWrap);
+      }
+      return;
+    }
+    if (emptyEl) emptyEl.hidden = true;
+    if (flagsWrap) {
+      flagsWrap.innerHTML = '';
+      list.forEach(function (c) { flagsWrap.appendChild(flagItem(c)); });
+    }
+  }
+
+  function fetchCountries() {
+    fetch('{% url "store:visitors_countries" %}', { cache: 'no-store' })
+      .then(function (res) { return res.json(); })
+      .then(function (data) { renderFlags(data.countries); })
+      .catch(function () {});
+  }
+
+  function fetchCountry(cb) {
+    var ctl = new AbortController();
+    var t = setTimeout(function () { ctl.abort(); }, 4000);
+    fetch('https://ipwho.is/', { signal: ctl.signal })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        clearTimeout(t);
+        cb((d && d.success) ? (d.country_code || '') : '');
+      })
+      .catch(function () { clearTimeout(t); cb(''); });
+  }
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var rating = new FormData(form).get('rating');
+    var submitBtn = form.querySelector('button[value=' + rating + ']');
+    if (submitBtn) submitBtn.disabled = true;
+    fetchCountry(function (country) {
+      var body = new FormData();
+      body.append('rating', rating);
+      if (country) body.append('country', country);
+      if (token) body.append('csrfmiddlewaretoken', token.value);
+      fetch('{% url "store:feedback" %}', { method: 'POST', body: body })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          form.hidden = true;
+          thanks.hidden = false;
+          renderFlags(data.countries);
+        })
+        .catch(function () {
+          form.hidden = true;
+          thanks.hidden = false;
+        });
+    });
+  });
+
+  setInterval(fetchCountries, POLL_MS);
 })();
 </script>
 {% endblock %}

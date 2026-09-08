@@ -8,7 +8,7 @@ from store.forms import ProductAdminForm, ProductImageAdminForm
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
-from store.models import Category, DeliveryZone, Order, OrderItem, Product, ProductDeliveryConfig, ProductImage
+from store.models import Category, DailyStats, DeliveryZone, Feedback, Order, OrderItem, Product, ProductImage, StoreConfig, StoreHours
 from store.config import SITE_NAME
 from store.whatsapp import wa_link_for
 
@@ -21,12 +21,6 @@ class ProductImageInline(admin.TabularInline):
     form = ProductImageAdminForm
     extra = 1
     fields = ("image", "alt_text", "is_primary")
-
-
-class ProductDeliveryConfigInline(admin.StackedInline):
-    model = ProductDeliveryConfig
-    extra = 0
-    fields = ("allow_delivery", "min_quantity_for_delivery")
 
 
 @admin.register(Category)
@@ -44,7 +38,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "is_featured", "category")
     search_fields = ("name", "description")
     prepopulated_fields = {"slug": ("name",)}
-    inlines = [ProductImageInline, ProductDeliveryConfigInline]
+    inlines = [ProductImageInline]
     fieldsets = (
         (None, {"fields": ("category", "name", "slug", "description")}),
         ("Precio y stock", {"fields": ("price", "stock", "is_active", "is_featured")}),
@@ -79,15 +73,31 @@ class DeliveryZoneAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(ProductDeliveryConfig)
-class ProductDeliveryConfigAdmin(admin.ModelAdmin):
-    list_display = ("product", "allow_delivery", "min_quantity_for_delivery")
-    list_filter = ("allow_delivery",)
-    search_fields = ("product__name",)
-    fieldsets = (
-        (None, {"fields": ("product",)}),
-        ("Configuración de domicilio", {"fields": ("allow_delivery", "min_quantity_for_delivery")}),
-    )
+@admin.register(StoreConfig)
+class StoreConfigAdmin(admin.ModelAdmin):
+    fields = ("force_open", "delivery_from", "delivery_to")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(pk=1)
+
+
+@admin.register(StoreHours)
+class StoreHoursAdmin(admin.ModelAdmin):
+    list_display = ("get_day_label", "open_time", "close_time", "is_closed")
+    list_editable = ("open_time", "close_time", "is_closed")
+    list_display_links = None
+    ordering = ("day",)
+    list_per_page = 10
+
+    @admin.display(description="Día")
+    def get_day_label(self, obj):
+        return obj.get_day_display()
 
 
 class OrderItemInline(admin.TabularInline):
@@ -157,3 +167,36 @@ class OrderAdmin(admin.ModelAdmin):
             "links": links,
             "opts": self.model._meta,
         })
+
+
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ("get_rating_display", "created_at")
+    ordering = ("-created_at",)
+    actions = None
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(DailyStats)
+class DailyStatsAdmin(admin.ModelAdmin):
+    list_display = ("date", "views", "visitors")
+    list_display_links = ("date",)
+    ordering = ("-date",)
+    actions = None
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

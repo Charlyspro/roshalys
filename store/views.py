@@ -12,14 +12,18 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Q, Sum
+from django.db.models import Count, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.text import slugify
+from django.views.decorators.http import require_POST
 
 from store import config
 from store.forms import CustomerProfileForm, CustomerRegistrationForm, DeliveryForm, ProductAdminForm
-from store.models import Category, DeliveryZone, Order, OrderItem, Product, ProductDeliveryConfig
+from store.hours import delivery_window, is_force_open, is_open, next_open_info, schedule_summary, seconds_until_open
+from store.models import Category, DeliveryZone, Feedback, Order, OrderItem, Product
+from store.visits import _client_ip, _resolve_country, _visitor_key, country_votes, visits_summary
 from store.whatsapp import (
     build_product_message,
     product_wa_link,
@@ -146,23 +150,14 @@ def _calculate_delivery_cost(request, delivery_option, delivery_zone=None):
         return None, "Zona de entrega no seleccionada"
     
     items, _ = _cart_items(request)
-    total_quantity = sum(item["quantity"] for item in items)
-    
-    # Validar que todos los productos permitan domicilio
-    for item in items:
-        product = item["product"]
-        delivery_config = ProductDeliveryConfig.objects.filter(product=product).first()
-        
-        if delivery_config is None:
-            return None, f"El producto '{product.name}' no tiene configurada la entrega a domicilio"
-        
-        if not delivery_config.allow_delivery:
-            return None, f"El producto '{product.name}' no permite envío a domicilio"
-        
-        if total_quantity < delivery_config.min_quantity_for_delivery:
-            return None, f"Cantidad mínima para domicilio: {delivery_config.min_quantity_for_delivery} productos"
-    
-    # Retornar el costo de la zona
+    subtotal = sum(item["line_total"] for item in items)
+    if subtotal < config.DELIVERY_MIN_TOTAL:
+        return None, (
+            f"El envío a domicilio está disponible a partir de "
+            f"${config.DELIVERY_MIN_TOTAL:.2f}. "
+            f"Tu subtotal actual es ${subtotal:.2f}."
+        )
+
     return delivery_zone.cost, None
 
 
@@ -185,24 +180,55 @@ def _best_sellers(limit=3):
 
 
 def home(request):
-    categories = Category.objects.filter(is_active=True)
+    categories = (
+        Category.objects.filter(is_active=True)
+        .annotate(product_count=Count("products", filter=Q(products__is_active=True)))
+        .order_by("name")
+    )
     featured_products = Product.objects.filter(is_active=True, is_featured=True)[:8]
     best_sellers = _best_sellers(3)
     all_products = Product.objects.filter(is_active=True)
-    paginator = Paginator(all_products, 12)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
     return render(request, "store/home.html", {
         "categories": categories,
         "featured_products": featured_products,
         "best_sellers": best_sellers,
-        "page_obj": page_obj,
+        "all_products": all_products,
+        "visitor_countries": country_votes(),
         "page_title": "Inicio",
     })
 
 
+@require_POST
+def feedback_view(request):
+    rating = request.POST.get("rating")
+    if rating not in ("like", "dislike"):
+        return JsonResponse({"error": "Voto no válido."}, status=400)
+    if request.session.get("feedback_voted"):
+        return JsonResponse({"ok": True, "countries": country_votes()})
+    raw_country = (request.POST.get("country") or "").strip()
+    country = raw_country.upper() if raw_country.isalpha() and len(raw_country) == 2 else ""
+    if not country:
+        country = _resolve_country(_visitor_key(request), _client_ip(request))
+    Feedback.objects.create(rating=1 if rating == "like" else -1, country_code=country)
+    request.session["feedback_voted"] = True
+    return JsonResponse({"ok": True, "countries": country_votes()})
+
+
+def visitors_countries_view(request):
+    return JsonResponse({"countries": country_votes()})
+
+
 def category_products(request, slug):
     category = get_object_or_404(Category, slug=slug, is_active=True)
+    if category.slug != slug:
+        return redirect("store:category_products", slug=category.slug, permanent=True)
+    normalized = slugify(category.name) or category.slug
+    if normalized != category.slug:
+        try:
+            Category.objects.filter(pk=category.pk).update(slug=normalized)
+        except IntegrityError:
+            pass
+        return redirect("store:category_products", slug=normalized, permanent=True)
     products = Product.objects.filter(category=category, is_active=True)
     paginator = Paginator(products, 12)
     page_number = request.GET.get("page")
@@ -326,9 +352,26 @@ def whatsapp_checkout(request):
             checkout_token = form.cleaned_data["checkout_token"]
             delivery_option = form.cleaned_data["delivery_option"]
             delivery_zone = form.cleaned_data.get("delivery_zone")
-            
+
+            win = delivery_window()
+            late_accepted = False
+            if delivery_option == "delivery" and not win["active"]:
+                if not form.cleaned_data.get("accept_delivery_late"):
+                    delivery_error = (
+                        f"Estás fuera del horario de domicilio ({win['hours_text']}). "
+                        f"Tu pedido se entregará {win['resume_label'] or 'al día siguiente'}. "
+                        f"Marcá la casilla para aceptar la entrega."
+                    )
+                else:
+                    late_accepted = True
+                    delivery_error = None
+            else:
+                delivery_error = None
+
             # Calcular costo de domicilio
-            delivery_cost, delivery_error = _calculate_delivery_cost(request, delivery_option, delivery_zone)
+            delivery_cost = Decimal("0.00")
+            if delivery_error is None:
+                delivery_cost, delivery_error = _calculate_delivery_cost(request, delivery_option, delivery_zone)
             if delivery_error:
                 messages.error(request, delivery_error)
             else:
@@ -371,7 +414,12 @@ def whatsapp_checkout(request):
                                 delivery_address=form.cleaned_data.get("delivery_address", "").strip(),
                                 delivery_notes=form.cleaned_data.get("delivery_notes", "").strip(),
                                 total=order_total,
-                                notes="Pedido generado desde la tienda online.",
+                                notes=(
+                                    "Pedido generado desde la tienda online. "
+                                    "Entrega fuera del horario de domicilio: se entregará al día siguiente."
+                                    if late_accepted else
+                                    "Pedido generado desde la tienda online."
+                                ),
                             )
                             # Logging de auditoría
                             audit_logger.info(
@@ -415,6 +463,8 @@ def whatsapp_checkout(request):
         "items": items,
         "total": total,
         "delivery_zones": DeliveryZone.objects.filter(is_active=True),
+        "delivery_min_total": config.DELIVERY_MIN_TOTAL,
+        "delivery_window": delivery_window(),
         "page_title": "Datos de entrega",
     })
 
@@ -502,6 +552,11 @@ def admin_dashboard(request):
         "recent_products": Product.objects.order_by("-created_at")[:5],
         "page_title": "Dashboard",
     }
+    context.update(visits_summary())
+    context.update({
+        "feedback_likes": Feedback.objects.filter(rating=1).count(),
+        "feedback_dislikes": Feedback.objects.filter(rating=-1).count(),
+    })
     return render(request, "store/admin_dashboard.html", context)
 
 
@@ -520,8 +575,6 @@ def admin_products(request):
         
         if form.is_valid():
             product = form.save()
-            # Asegurar que el producto tenga configuración de entrega
-            ProductDeliveryConfig.objects.get_or_create(product=product)
             # Logging de auditoría
             if product_id:
                 audit_logger.info(
@@ -557,7 +610,6 @@ def admin_edit_product(request, product_id):
         form = ProductAdminForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
-            ProductDeliveryConfig.objects.get_or_create(product=product)
             messages.success(request, f"Producto '{product.name}' actualizado exitosamente.")
             return redirect("store:admin_products")
     else:
@@ -612,3 +664,14 @@ def admin_delete_product(request, product_id):
         messages.success(request, f"Producto '{product_name}' eliminado exitosamente.")
     
     return redirect("store:admin_products")
+
+
+def closed_page(request):
+    if is_open():
+        return redirect("store:home")
+    return render(request, "store/closed.html", {
+        "seconds_until_open": seconds_until_open(),
+        "next_open": next_open_info(),
+        "schedule_summary": schedule_summary(),
+        "force_open": is_force_open(),
+    })

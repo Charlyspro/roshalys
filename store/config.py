@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from decouple import config
 
 SITE_NAME = config("STORE_NAME", default="ROSHALYS")
@@ -17,6 +19,10 @@ SECONDARY_COLOR = config("SECONDARY_COLOR", default="#2563EB")
 BACKGROUND_COLOR = config("BACKGROUND_COLOR", default="#F8FAFC")
 TEXT_COLOR = config("TEXT_COLOR", default="#0F172A")
 BUTTON_COLOR = config("BUTTON_COLOR", default="#2563EB")
+
+DELIVERY_MIN_TOTAL = config("DELIVERY_MIN_TOTAL", default="1000", cast=Decimal)
+
+BUSINESS_TIMEZONE = config("BUSINESS_TIMEZONE", default="America/Havana")
 
 OLLAMA_ENABLED = config("OLLAMA_ENABLED", default=False, cast=bool)
 OLLAMA_URL = config("OLLAMA_URL", default="http://127.0.0.1:11434")

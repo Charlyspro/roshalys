@@ -411,7 +411,6 @@ body.admin-modern {
 .pagination a,
 .object-tools a,
 #nav-sidebar a,
-#header a,
 .app-list a {
   color: var(--admin-primary) !important;
   text-decoration: none !important;
@@ -625,6 +624,62 @@ body.login #content {
   text-transform: uppercase !important;
 }
 
+#content .admin-auth-card h1 {
+  font-size: 1.35rem !important;
+  text-align: center !important;
+  margin: 4px 0 6px !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+}
+
+.admin-auth-sub {
+  text-align: center !important;
+  color: var(--admin-text-soft, #64748B) !important;
+  font-size: 0.9rem !important;
+  margin: 0 0 20px !important;
+}
+
+.admin-auth-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.admin-link-block {
+  display: flex !important;
+  width: 100% !important;
+}
+
+.admin-auth-footer {
+  margin-top: 20px !important;
+  padding-top: 16px !important;
+  border-top: 1px solid var(--admin-border, #E2E8F0) !important;
+  text-align: center !important;
+  font-size: 0.88rem !important;
+}
+
+.admin-auth-footer a {
+  color: var(--admin-text-soft, #64748B) !important;
+  text-decoration: none !important;
+}
+
+.admin-auth-footer a:hover {
+  color: var(--admin-primary, #14213D) !important;
+}
+
+#header .admin-toolbar #logout-form {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#header .admin-toolbar #logout-form .admin-link {
+  font: inherit !important;
+  cursor: pointer !important;
+}
+
 @media (max-width: 768px) {
   #container {
     padding: 0 14px 28px !important;
@@ -646,4 +701,62 @@ body.login #content {
     font-size: 0.8rem !important;
     padding: 0 10px !important;
   }
+}
+
+/* --- Contraste top bar / header (fondo navy) --- */
+#header a,
+#header a:link,
+#header a:visited,
+#header a:focus,
+#header a:hover,
+#header #user-tools a,
+#header .admin-link,
+#header .admin-link:visited {
+  color: #ffffff !important;
+}
+
+#header button,
+#header input[type="submit"],
+#header input[type="button"],
+#header .button {
+  background: transparent !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  box-shadow: none !important;
+}
+
+#header button:hover,
+#header input[type="submit"]:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+#header .admin-brand-link,
+#header .admin-brand-text,
+#header #branding a {
+  color: var(--header-branding-color, #14B8A6) !important;
+}
+
+#header .admin-brand-mark {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+}
+
+#header .admin-link-primary,
+#header .admin-link-primary:hover,
+#header .admin-link-primary:focus {
+  background: var(--admin-accent, #2563EB) !important;
+  border-color: var(--admin-accent, #2563EB) !important;
+  color: #ffffff !important;
+}
+
+#header .admin-link-muted,
+#header .admin-link-muted:hover,
+#header .admin-link-muted:focus {
+  color: #ffffff !important;
+}
+
+#header .admin-link-muted:hover,
+#header .admin-link-muted:focus {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: #ffffff !important;
 }

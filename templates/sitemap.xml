@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  {% for page in pages %}
   <url>
-    <loc>http://127.0.0.1:8000/</loc>
+    <loc>{{ domain }}/{{ page }}</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
   </url>
+  {% endfor %}
+  {% for category in categories %}
+  <url>
+    <loc>{{ domain }}{% url 'store:category_products' category.slug %}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  {% endfor %}
+  {% for product in products %}
+  <url>
+    <loc>{{ domain }}{% url 'store:product_detail' product.slug %}</loc>
+    <lastmod>{{ product.updated_at|date:"Y-m-d" }}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  {% endfor %}
 </urlset>
