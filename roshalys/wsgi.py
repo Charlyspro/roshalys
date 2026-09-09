@@ -26,12 +26,16 @@ def _migrate_on_boot():
     # runtime al arrancar el proceso WSGI.
     # Nunca se ejecuta en comandos de gestión incompatibles (test, migrate,
     # makemigrations, shell, collectstatic, etc.), solo al arrancar un servidor.
-    args = sys.argv
+    args = " ".join(sys.argv).lower()
     if not args:
         return
-    if any(tool in args for tool in ("test", "migrate", "makemigrations")):
+    if any(tok in args for tok in ("test", " migrate", " makemigrations", "shell", "collectstatic",
+                                   "flush", "loaddata", "dumpdata", "createsuperuser", "whatsapp",
+                                   "seed")):
         return
-    if not any(tool in args for tool in ("uvicorn", "gunicorn", "runserver", "hypercorn", "daphne")):
+    # El runtime deja el executeable del servidor (p. ej. `/opt/venv/.../uvicorn`)
+    # en `sys.argv[0]`, así que se detecta por substring y no por igualdad exacta.
+    if not any(server in args for server in ("uvicorn", "gunicorn", "hypercorn", "daphne")):
         return
     try:
         from django.core import management
