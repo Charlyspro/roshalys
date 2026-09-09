@@ -10,18 +10,13 @@ env:
   DEBUG: 'False'
   DATABASE_ENGINE: mysql
   ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0,.wasmer.app
-  CSRF_TRUSTED_ORIGINS: https://roshalys-charlyspro771.wasmer.app
+  CSRF_TRUSTED_ORIGINS: https://roshalys.wasmer.app
   STORE_NAME: ROSHALYS
   STORE_LOGO: ROSHALYS
   STORE_CURRENCY: USD
   ADMIN_EMAIL: admin@roshalys.local
   WHATSAPP_NUMBERS: 5354279546,5355502491
   DELIVERY_MIN_TOTAL: '1000'
-  PRIMARY_COLOR: '#14213D'
-  SECONDARY_COLOR: '#2563EB'
-  BACKGROUND_COLOR: '#F8FAFC'
-  TEXT_COLOR: '#0F172A'
-  BUTTON_COLOR: '#2563EB'
 capabilities:
   database:
     engine: mysql

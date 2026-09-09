@@ -1,15 +1,21 @@
-import mimetypes
 from pathlib import Path
 
-# Whitenoise/mimetypes: el navegador necesita este tipo para el manifest PWA.
-mimetypes.add_type("application/manifest+json", ".webmanifest")
-
 from decouple import config
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config("SECRET_KEY", default="dev-secret-key-roshalys")
+# Clave SOLO para desarrollo local (DEBUG=True). En producción nunca debe usarse.
+DEV_SECRET_KEY = "dev-secret-key-roshalys"
+
+SECRET_KEY = config("SECRET_KEY", default=DEV_SECRET_KEY)
 DEBUG = config("DEBUG", default=True, cast=bool)
+
+if not DEBUG and SECRET_KEY == DEV_SECRET_KEY:
+    raise ImproperlyConfigured(
+        "SECRET_KEY no puede ser el valor de desarrollo cuando DEBUG=False. "
+        "Configura SECRET_KEY como secreto de la app (p. ej. `wasmer app secret`)."
+    )
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
     default="localhost,127.0.0.1,0.0.0.0,.wasmer.app",

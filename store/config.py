@@ -14,11 +14,6 @@ WHATSAPP_NUMBERS = [
     ).split(",")
     if number.strip()
 ]
-PRIMARY_COLOR = config("PRIMARY_COLOR", default="#14213D")
-SECONDARY_COLOR = config("SECONDARY_COLOR", default="#2563EB")
-BACKGROUND_COLOR = config("BACKGROUND_COLOR", default="#F8FAFC")
-TEXT_COLOR = config("TEXT_COLOR", default="#0F172A")
-BUTTON_COLOR = config("BUTTON_COLOR", default="#2563EB")
 
 DELIVERY_MIN_TOTAL = config("DELIVERY_MIN_TOTAL", default="1000", cast=Decimal)
 

@@ -10,7 +10,7 @@ from django.db import transaction
 from django.db.models import Count, Sum
 
 from store.hours import _local_now
-from store.models import DailyStats, Feedback, VisitorCountry
+from store.models import DailyStats, DailyVisitor, Feedback, VisitorCountry
 
 logger = logging.getLogger("store")
 
@@ -55,24 +55,20 @@ def record_visit(request):
         return
     today = _local_now().date()
     key = _visitor_key(request)
-    ip = _client_ip(request)
     with transaction.atomic():
-        row, _created = DailyStats.objects.get_or_create(
+        row, _ = DailyStats.objects.get_or_create(
             date=today,
-            defaults={"views": 0, "visitors": 0, "seen_keys": "[]"},
+            defaults={"views": 0, "visitors": 0},
         )
         try:
             locked = DailyStats.objects.select_for_update().get(pk=row.pk)
         except ObjectDoesNotExist:
             locked = row
-        seen = json.loads(locked.seen_keys or "[]")
-        if key not in seen:
-            seen.append(key)
+        _visitor, visitor_created = DailyVisitor.objects.get_or_create(date=today, ip_hash=key)
+        if visitor_created:
             locked.visitors += 1
-            locked.seen_keys = json.dumps(seen)
-            _resolve_country(key, ip)
         locked.views += 1
-        locked.save()
+        locked.save(update_fields=["views", "visitors"])
 
 
 def _client_ip(request):

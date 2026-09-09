@@ -266,11 +266,6 @@ class DailyStats(models.Model):
     date = models.DateField(unique=True, verbose_name="Fecha")
     views = models.PositiveIntegerField(default=0, verbose_name="Visitas")
     visitors = models.PositiveIntegerField(default=0, verbose_name="Visitantes únicos")
-    seen_keys = models.TextField(
-        default="[]",
-        help_text="Identificadores anónimos de visitantes ya contados en el día (JSON).",
-        verbose_name="Visitantes contados",
-    )
 
     class Meta:
         ordering = ["-date"]
@@ -279,6 +274,21 @@ class DailyStats(models.Model):
 
     def __str__(self):
         return self.date.isoformat()
+
+
+class DailyVisitor(models.Model):
+    date = models.DateField(db_index=True, verbose_name="Fecha")
+    ip_hash = models.CharField(max_length=64, verbose_name="Visitante (hash)")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Registrado")
+
+    class Meta:
+        unique_together = ("date", "ip_hash")
+        ordering = ["-date", "-created_at"]
+        verbose_name = "Visitante único diario"
+        verbose_name_plural = "Visitantes únicos diarios"
+
+    def __str__(self):
+        return f"{self.date.isoformat()} {self.ip_hash[:12]}"
 
 
 class VisitorCountry(models.Model):

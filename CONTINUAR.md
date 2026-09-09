@@ -19,6 +19,7 @@ Documento de handoff. Léelo completo antes de tocar nada.
 
 - Proyecto fuente/edición: `C:\SITIO WEP`
   - Venv de tests: `C:\SITIO WEP\.venv-1\Scripts\python.exe` (Django 5.2.17).
+  - **Venv canónico y activo: `.venv-1`** (coincide con `requirements.txt`/`pyproject.toml`). `.venv` es un duplicado antiguo con paquetes extra ajenos (boto3, reportlab, svglib, requests…); se conserva solo por compatibilidad con logs históricos. NO usarlo ni recrearlo; si molesta, puede borrarse (`Remove-Item .venv -Recurse -Force`). Está excluido del repo vía `.gitignore` (`.venv/` y `.venv-1/`).
 - Staging de deploy (crea/recrea cuando necesites): `C:\Users\CHARLY~1\AppData\Local\Temp\opencode\roshalys-final`
   - Es una COPIA del proyecto SIN `.venv*`, `IMAGENES`, `logs`, `media`, `staticfiles`, `secrets`, `.git`, `db.sqlite3`, `.env`, `.pyc`.
 

@@ -10,7 +10,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from store.hours import _local_now, delivery_window, is_open, next_open_info, schedule_summary, seconds_until_open
-from store.models import Category, DailyStats, DeliveryZone, Feedback, Order, OrderItem, Product, StoreConfig, StoreHours, VisitorCountry
+from store.models import Category, DailyStats, DailyVisitor, DeliveryZone, Feedback, Order, OrderItem, Product, StoreConfig, StoreHours, VisitorCountry
 from store.visits import _geo_lookup, country_votes, visits_summary
 
 # El middleware de tienda cerrada consulta la hora real; durante los tests
@@ -380,7 +380,39 @@ class SearchAndCategoryTests(TestCase):
             )
         response = self.client.get(reverse("store:category_products", args=["electronica"]), {"page": "1"})
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["page_obj"].number, 1)
         self.assertTrue(response.context["page_obj"].has_next())
+        self.assertContains(response, 'class="pagination"')
+        self.assertContains(response, "Siguiente")
+        self.assertContains(response, "page=2")
+
+        page2 = self.client.get(reverse("store:category_products", args=["electronica"]), {"page": "2"})
+        self.assertEqual(page2.status_code, 200)
+        self.assertEqual(page2.context["page_obj"].number, 2)
+        self.assertContains(page2, "Anterior")
+
+    def test_search_pagination_preserves_query(self):
+        for i in range(15):
+            Product.objects.create(
+                category=self.category,
+                name=f"Smartphone Extra {i}",
+                slug=f"smartphone-extra-{i}",
+                price=Decimal("300.00"),
+                description="Test",
+                stock=10,
+                is_active=True,
+            )
+        response = self.client.get(reverse("store:search_products"), {"q": "Smartphone"})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["page_obj"].has_next())
+        self.assertContains(response, 'class="pagination"')
+        self.assertContains(response, "page=2")
+        self.assertContains(response, "q=Smartphone")
+
+        page2 = self.client.get(reverse("store:search_products"), {"q": "Smartphone", "page": "2"})
+        self.assertEqual(page2.status_code, 200)
+        self.assertEqual(page2.context["page_obj"].number, 2)
+        self.assertContains(page2, "Anterior")
 
 
 class AdminProductManagementTests(TestCase):
@@ -492,12 +524,25 @@ class AdminProductManagementTests(TestCase):
     def test_admin_can_delete_product(self):
         self.client.force_login(self.admin_user)
         product_id = self.product.id
+        response = self.client.post(reverse("store:admin_delete_product", args=[product_id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Product.objects.filter(id=product_id).exists())
+
+    def test_delete_product_requires_post(self):
+        self.client.force_login(self.admin_user)
+        product_id = self.product.id
         response = self.client.get(reverse("store:admin_delete_product", args=[product_id]))
-        # Puede ser 200, 302 o similar
-        # La eliminación se hace en el GET con confirmación
-        products = Product.objects.filter(id=product_id)
-        # El producto debería haber sido eliminado o la vista debería existir
-        self.assertTrue(response.status_code in [200, 302, 404])
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(Product.objects.filter(id=product_id).exists())
+
+    def test_delete_product_requires_csrf(self):
+        self.client.force_login(self.admin_user)
+        csrf_client = self.client_class(enforce_csrf_checks=True)
+        csrf_client.force_login(self.admin_user)
+        product_id = self.product.id
+        response = csrf_client.post(reverse("store:admin_delete_product", args=[product_id]))
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Product.objects.filter(id=product_id).exists())
 
     def test_admin_products_list_shows_all_products(self):
         self.client.force_login(self.admin_user)
@@ -1027,9 +1072,9 @@ class VisitCounterTests(TestCase):
         self.assertFalse(DailyStats.objects.filter(date=self._today()).exists())
 
     def test_admin_dashboard_shows_visits(self):
-        DailyStats.objects.create(date=self._today(), views=3, visitors=2, seen_keys="[]")
+        DailyStats.objects.create(date=self._today(), views=3, visitors=2)
         DailyStats.objects.create(
-            date=self._today() - datetime.timedelta(days=1), views=5, visitors=4, seen_keys="[]"
+            date=self._today() - datetime.timedelta(days=1), views=5, visitors=4
         )
         summary = visits_summary()
         self.assertEqual(summary["today_views"], 3)
@@ -1066,13 +1111,15 @@ class VisitorFeedbackTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(self.client.get(reverse("store:feedback")).status_code, 405)
 
-    def test_geo_lookup_populates_country(self):
-        with mock.patch("store.visits._geo_lookup", return_value="CU"):
+    def test_geo_lookup_is_not_run_per_visit(self):
+        with mock.patch("store.visits._geo_lookup") as geo:
             self.client.get(reverse("store:home"))
+            self.client.get(reverse("store:home"), REMOTE_ADDR="9.9.9.9")
+        geo.assert_not_called()
         row = DailyStats.objects.get(date=self._today())
-        key = json.loads(row.seen_keys)[0]
-        vc = VisitorCountry.objects.get(ip_hash=key)
-        self.assertEqual(vc.country_code, "CU")
+        self.assertEqual(row.views, 2)
+        self.assertEqual(row.visitors, 2)
+        self.assertEqual(DailyVisitor.objects.filter(date=self._today()).count(), 2)
 
     def test_country_votes_counts_and_sorts(self):
         for _ in range(2):

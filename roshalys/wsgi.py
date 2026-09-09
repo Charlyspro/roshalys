@@ -18,21 +18,10 @@ import roshalys.cookie_patch  # noqa: F401  (corrige Set-Cookie con espacio inic
 
 application = get_wsgi_application()
 
-
-def _migrate_on_boot():
-    # Wasmer ejecuta `migrate` durante el build contra una BD efímera; este
-    # respaldo garantiza que el esquema llegue a la BD persistente del runtime.
-    try:
-        import sys
-        if "test" in sys.argv or "migrate" in sys.argv or "makemigrations" in sys.argv:
-            return
-        from django.core import management
-        management.call_command("migrate", interactive=False, verbosity=0)
-    except Exception:
-        pass
-
-
-_migrate_on_boot()
+# La migración de producción se ejecuta exclusivamente en el job
+# `after_deploy` de app.yaml (`python manage.py migrate --noinput`).
+# No se migra al arrancar el proceso (evita locks/races multi-worker y
+# no oculta errores de esquema).
 
 # Wasmer Edge espera la variable `app` como entrypoint WSGI.
 app = application

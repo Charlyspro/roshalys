@@ -168,11 +168,11 @@ def _best_sellers(limit=3):
         .order_by("-total")
     )
     total_by_id = {row["product_id"]: row["total"] for row in totals}
-    products = list(Product.objects.filter(pk__in=total_by_id.keys(), is_active=True))
+    products = list(Product.objects.filter(pk__in=total_by_id.keys(), is_active=True).select_related("category"))
     products.sort(key=lambda p: total_by_id[p.pk], reverse=True)
     if len(products) < limit:
         used_ids = {p.pk for p in products}
-        for product in Product.objects.filter(is_active=True).exclude(pk__in=used_ids).order_by("-is_featured", "name"):
+        for product in Product.objects.filter(is_active=True).exclude(pk__in=used_ids).order_by("-is_featured", "name").select_related("category"):
             if len(products) >= limit:
                 break
             products.append(product)
@@ -185,14 +185,16 @@ def home(request):
         .annotate(product_count=Count("products", filter=Q(products__is_active=True)))
         .order_by("name")
     )
-    featured_products = Product.objects.filter(is_active=True, is_featured=True)[:8]
+    featured_products = Product.objects.filter(is_active=True, is_featured=True).select_related("category")[:8]
     best_sellers = _best_sellers(3)
-    all_products = Product.objects.filter(is_active=True)
+    all_products = Product.objects.filter(is_active=True).select_related("category")
+    all_products_total = all_products.count()
     return render(request, "store/home.html", {
         "categories": categories,
         "featured_products": featured_products,
         "best_sellers": best_sellers,
         "all_products": all_products,
+        "all_products_total": all_products_total,
         "visitor_countries": country_votes(),
         "page_title": "Inicio",
     })
@@ -229,7 +231,7 @@ def category_products(request, slug):
         except IntegrityError:
             pass
         return redirect("store:category_products", slug=normalized, permanent=True)
-    products = Product.objects.filter(category=category, is_active=True)
+    products = Product.objects.filter(category=category, is_active=True).select_related("category")
     paginator = Paginator(products, 12)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
@@ -242,8 +244,8 @@ def category_products(request, slug):
 
 
 def search_products(request):
-    query = request.GET.get("q", "").strip()
-    products = Product.objects.filter(is_active=True)
+    query = (request.GET.get("q", "") or "").strip()[:120]
+    products = Product.objects.filter(is_active=True).select_related("category")
     if query:
         products = products.filter(
             Q(name__icontains=query)
@@ -262,9 +264,15 @@ def search_products(request):
 
 
 def product_detail(request, slug):
-    product = get_object_or_404(Product, slug=slug, is_active=True)
+    product = get_object_or_404(
+        Product.objects.select_related("category"), slug=slug, is_active=True
+    )
     gallery = product.gallery.all()
-    related = Product.objects.filter(category=product.category, is_active=True).exclude(pk=product.pk)[:4]
+    related = (
+        Product.objects.filter(category=product.category, is_active=True)
+        .exclude(pk=product.pk)
+        .select_related("category")[:4]
+    )
     return render(request, "store/product_detail.html", {
         "product": product,
         "gallery": gallery,
@@ -610,6 +618,12 @@ def admin_edit_product(request, product_id):
         form = ProductAdminForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
+            audit_logger.info(
+                f"Producto actualizado: {product.name} (ID={product.pk}), "
+                f"Precio=${product.price:.2f}, Stock={product.stock}, "
+                f"Activo={product.is_active}, Destacado={product.is_featured}, "
+                f"Usuario={request.user.username}"
+            )
             messages.success(request, f"Producto '{product.name}' actualizado exitosamente.")
             return redirect("store:admin_products")
     else:
@@ -648,21 +662,21 @@ def admin_publish_product(request, product_id):
 
 @staff_member_required
 @login_required
+@require_POST
 def admin_delete_product(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
     product_name = product.name
     product_price = product.price
     product_id_val = product.id
-    
-    if request.method == "POST" or request.GET.get("confirm") == "true":
-        product.delete()
-        # Logging de auditoría
-        audit_logger.info(
-            f"Producto eliminado: {product_name} (ID={product_id_val}), "
-            f"Precio=${product_price:.2f}, Usuario={request.user.username}"
-        )
-        messages.success(request, f"Producto '{product_name}' eliminado exitosamente.")
-    
+
+    product.delete()
+    # Logging de auditoría
+    audit_logger.info(
+        f"Producto eliminado: {product_name} (ID={product_id_val}), "
+        f"Precio=${product_price:.2f}, Usuario={request.user.username}"
+    )
+    messages.success(request, f"Producto '{product_name}' eliminado exitosamente.")
+
     return redirect("store:admin_products")
 
 
