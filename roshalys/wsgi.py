@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 
 import os
+import sys
 
 from django.core.wsgi import get_wsgi_application
 
@@ -18,10 +19,28 @@ import roshalys.cookie_patch  # noqa: F401  (corrige Set-Cookie con espacio inic
 
 application = get_wsgi_application()
 
-# La migración de producción se ejecuta exclusivamente en el job
-# `after_deploy` de app.yaml (`python manage.py migrate --noinput`).
-# No se migra al arrancar el proceso (evita locks/races multi-worker y
-# no oculta errores de esquema).
+
+def _migrate_on_boot():
+    # Wasmer ejecuta `migrate` en el job `after_deploy` contra una BD efímera;
+    # este respaldo garantiza que el esquema llegue a la BD persistente del
+    # runtime al arrancar el proceso WSGI.
+    # Nunca se ejecuta en comandos de gestión incompatibles (test, migrate,
+    # makemigrations, shell, collectstatic, etc.), solo al arrancar un servidor.
+    args = sys.argv
+    if not args:
+        return
+    if any(tool in args for tool in ("test", "migrate", "makemigrations")):
+        return
+    if not any(tool in args for tool in ("uvicorn", "gunicorn", "runserver", "hypercorn", "daphne")):
+        return
+    try:
+        from django.core import management
+        management.call_command("migrate", interactive=False, verbosity=0)
+    except Exception:
+        pass
+
+
+_migrate_on_boot()
 
 # Wasmer Edge espera la variable `app` como entrypoint WSGI.
 app = application
